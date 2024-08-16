@@ -1,0 +1,32 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+aiohttp = {extras = ["speedups"], version = "*"}
+#argon2-cffi = "*"
+fastapi = {extras = ["all"], version = "*"}
+quart = {extras = ["dotenv"], version = "*"}
+#quart-auth = "*"
+#quart-wtforms = "*"
+uvicorn = "*"
+
+#[dev-packages]
+#e108 = {editable = true, path = "."}
+
+[requires]
+python_version = "3.12"
+python_full_version = "3.12.4"
+
+[scripts]
+## DESENVOLVIMENTO
+dev = "uvicorn src.e108.web:app --reload"
+## TESTE
+test = "python -m e108 test"
+api = "uvicorn e108.api:app"
+web = "uvicorn e108.web:app"
+## HOMOLOGAÇÃO
+homo = 'echo adoro'
+## PRODUÇÃO
+prod = "python -m e108"

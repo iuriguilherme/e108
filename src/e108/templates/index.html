@@ -1,0 +1,52 @@
+{% extends "default_layout.html" %}
+{% block body %}
+<h2>{{ name }} v{{ version }}: {{ description }}</h2>
+<div class="btn-group-vertical" role="group" aria-label="buttons">
+<!--
+    <a class="btn btn-success btn-lg" role="button"
+        href="{{ url_for('carregar', pagina = 'login') }}"
+    >Login &gt;&gt;</a>
+    <a
+        class="btn btn-secondary btn-lg"
+        role="button"
+        href="{{ url_for('carregar', pagina = 'login') }}"
+    >Logout &gt;&gt;</a>
+-->
+    <a
+        class="btn btn-warning btn-lg"
+        role="button"
+        href="{{ url_for(
+            'carregar',
+            color = 'warning',
+            pagina = 'battleball',
+            title = 'Ranking Battle Ball',
+        ) }}"
+    >&gt;&gt; Ranking Battle Ball &lt;&lt;</a>
+    <a
+        class="btn btn-info btn-lg"
+        role="button"
+        href="{{ url_for(
+            'carregar',
+            color = 'info',
+            pagina = 'info',
+            title = 'F.A.Q.',
+        ) }}"
+    >O que &eacute; este site&quest;</a>
+    <a
+        class="btn btn-info btn-lg"
+        role="button"
+        href="{{ url_for(
+            'carregar',
+            color = 'info',
+            pagina = 'comunidade',
+            title = 'Links úteis',
+        ) }}"
+    >Links comunidade Origins BR</a>
+    <a
+        class="btn btn-danger btn-lg"
+        role="button"
+        href="https://origins.habbo.com.br"
+        target="_blank"
+    >Habbo Origins &gt;&gt;</a>
+</div>
+{% endblock %}
