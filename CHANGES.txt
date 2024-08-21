@@ -1,1 +1,2 @@
 v0.0.1 -- e108 initial commit
+v0.0.2 -- Battle Ball API

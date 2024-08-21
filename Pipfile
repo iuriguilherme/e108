@@ -4,16 +4,20 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-aiohttp = {extras = ["speedups"], version = "*"}
 #argon2-cffi = "*"
 fastapi = {extras = ["all"], version = "*"}
 quart = {extras = ["dotenv"], version = "*"}
 #quart-auth = "*"
 #quart-wtforms = "*"
 uvicorn = "*"
-
 #[dev-packages]
 #e108 = {editable = true, path = "."}
+#aiohttp = {extras = ["speedups"], version = "*"}
+#aiodns = "*"
+requests = "*"
+
+[dev-packages]
+e108 = {file = ".", editable = true}
 
 [requires]
 python_version = "3.12"
@@ -21,12 +25,16 @@ python_full_version = "3.12.4"
 
 [scripts]
 ## DESENVOLVIMENTO
-dev = "uvicorn src.e108.web:app --reload"
+dev = "uvicorn src.e108.web:app ${WEB_DEV_OPTIONS}"
+da = "uvicorn src.e108.api:app ${API_DEV_OPTIONS}"
+dw = "uvicorn src.e108.web:app ${WEB_DEV_OPTIONS}"
 ## TESTE
-test = "python -m e108 test"
-api = "uvicorn e108.api:app"
-web = "uvicorn e108.web:app"
+test = "python -m e108"
+ta = "uvicorn e108.api:app ${API_OPTIONS}"
+tw = "uvicorn e108.web:app ${WEB_OPTIONS}"
 ## HOMOLOGAÇÃO
 homo = 'echo adoro'
 ## PRODUÇÃO
 prod = "python -m e108"
+pa = "python -m e108 api"
+pw = "python -m e108 web"

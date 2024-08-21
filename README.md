@@ -14,15 +14,9 @@ Idem com **example.env** pra **.env**
 ### pipenv
 
 ```
-$ pipenv install -e .
-$ pipenv run prod
-```
-
-### poetry
-
-```
-$ poetry install
-$ poetry run prod
+$ pipenv install --dev
+$ pipenv run pweb ## Site
+$ pipenv run papi ## API
 ```
 
 ### venv / pip
@@ -35,7 +29,7 @@ $ .\venv\Scripts\activate # Powershell
 (venv) $ python -m e108
 ```
 
-Licensa
+Licença
 ---
 
 Copyright 2024 Iuri Guilherme <https://iuri.neocities.org/>

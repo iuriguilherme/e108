@@ -1,7 +1,6 @@
 """e108"""
 
-import logging
-import os
+import logging, os, sys
 
 log_level: str = os.getenv('LOG_LEVEL'.upper(), default = logging.INFO)
 logging.basicConfig(level = log_level)

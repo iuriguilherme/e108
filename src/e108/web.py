@@ -1,6 +1,6 @@
 """Web"""
 
-import logging
+import logging, sys
 logger: logging.Logger = logging.getLogger(__name__)
 
 try:
@@ -27,7 +27,7 @@ try:
     # ~ )
 except Exception as e:
     logger.exception(e)
-    raise
+    sys.exit("Erro fatal, stacktrace acima")
 
 app: object = Quart(__name__)
 app.secret_key: str = os.getenv(
