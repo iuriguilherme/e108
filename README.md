@@ -6,17 +6,18 @@ Mais um projeto sem futuro
 Coméque
 ---
 
-Copiar **example.config.ini** pra **instance/config.ini**. Tem que abrir o 
+Copiar **example.env** pra **.env**. Tem que abrir o 
 arquivo em um editor de texto e configurar do jeito certo.  
 
-Idem com **example.env** pra **.env**  
+Criar um diretório de nome **instance** pro banco de dados (no futuro eu vou 
+criar isto automaticamente no código)  
 
 ### pipenv
 
 ```
 $ pipenv install --dev
-$ pipenv run pweb ## Site
-$ pipenv run papi ## API
+$ pipenv run pw ## Site
+$ pipenv run pa ## API
 ```
 
 ### venv / pip
@@ -26,7 +27,8 @@ $ python -m venv venv
 $ source venv/bin/activate # Unix
 $ .\venv\Scripts\activate # Powershell
 (venv) $ pip install -e .
-(venv) $ python -m e108
+(venv) $ python -m e108 web ## Site
+(venv) $ python -m e108 api ## API
 ```
 
 Licença
