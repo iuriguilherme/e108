@@ -652,7 +652,7 @@ async def remove(nome: str, lang: str = "br") -> dict:
     """Remove do placar"""
     try:
         with Session(engine) as session:
-            remove_stmt: object = delete(Rank).where(nome = nome)
+            remove_stmt: object = delete(Rank).where(Rank.nome = nome)
             session.execute(remove_stmt)
             session.commit()
         return {
