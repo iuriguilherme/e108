@@ -4,17 +4,17 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+#aiodns = "*"
+#aiohttp = {extras = ["speedups"], version = "*"}
 #argon2-cffi = "*"
 fastapi = {extras = ["all"], version = "*"}
 quart = {extras = ["dotenv"], version = "*"}
 #quart-auth = "*"
+#quart-sqlalchemy = "*"
 #quart-wtforms = "*"
-uvicorn = "*"
-#[dev-packages]
-#e108 = {editable = true, path = "."}
-#aiohttp = {extras = ["speedups"], version = "*"}
-#aiodns = "*"
 requests = "*"
+uvicorn = "*"
+sqlalchemy = "*"
 
 [dev-packages]
 e108 = {file = ".", editable = true}
@@ -25,9 +25,9 @@ python_full_version = "3.12.4"
 
 [scripts]
 ## DESENVOLVIMENTO
-dev = "uvicorn src.e108.web:app ${WEB_DEV_OPTIONS}"
-da = "uvicorn src.e108.api:app ${API_DEV_OPTIONS}"
-dw = "uvicorn src.e108.web:app ${WEB_DEV_OPTIONS}"
+dev = "uvicorn src.e108.web:app --reload ${WEB_DEV_OPTIONS}"
+da = "uvicorn src.e108.api:app --reload ${API_DEV_OPTIONS}"
+dw = "uvicorn src.e108.web:app --reload ${WEB_DEV_OPTIONS}"
 ## TESTE
 test = "python -m e108"
 ta = "uvicorn e108.api:app ${API_OPTIONS}"

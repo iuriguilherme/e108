@@ -1,6 +1,14 @@
 {% extends "default_layout.html" %}
+{% block title %}{{ title }}{% endblock %}
 {% block body %}
 <h2>Ranking do Battle Ball</h2>
 <hr>
 <p>Botaram a API no ar, esperando o iggy botar o site no ar.</p>
+<ul class="list-group">
+    <li class="list-group-item">1: Ryco - 87315 pontos</li>
+{% for nome, pontos in rankings.items() %}
+    <li class="list-group-item">
+{{ loop.index + 1 }}: {{ nome }} - {{ pontos }} pontos</li>
+{% endfor %}
+</ul>
 {% endblock %}

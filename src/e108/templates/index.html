@@ -1,4 +1,5 @@
 {% extends "default_layout.html" %}
+{% block title %}{{ title }}{% endblock %}
 {% block body %}
 <h2>{{ name }} v{{ version }}: {{ description }}</h2>
 <div class="btn-group-vertical" role="group" aria-label="buttons">
@@ -15,12 +16,7 @@
     <a
         class="btn btn-warning btn-lg"
         role="button"
-        href="{{ url_for(
-            'carregar',
-            color = 'warning',
-            pagina = 'battleball',
-            title = 'Ranking Battle Ball',
-        ) }}"
+        href="{{ url_for('battleball') }}"
     >&gt;&gt; Ranking Battle Ball &lt;&lt;</a>
     <a
         class="btn btn-info btn-lg"

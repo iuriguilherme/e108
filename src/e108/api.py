@@ -13,28 +13,40 @@ sites: dict[str] = {
 }
 
 try:
-    # ~ ## FIXME aiodns no windows não me deixa testar
-    # ~ import aiohttp
-    # ~ import asyncio
     import datetime
-    import requests
     from fastapi import FastAPI
+    import requests
+    import os
+    from quart import Quart
+    from sqlalchemy import (
+        create_engine,
+        MetaData,
+        select,
+        update,
+    )
+    from sqlalchemy.orm import Session
+    from sqlalchemy.exc import (
+        IntegrityError,
+        NoResultFound,
+    )
+    from .models.bb import (
+        Badge,
+        Base,
+        Match,
+        MatchPlayer,
+        MatchTeam,
+        Rank,
+        User,
+    )
 except Exception as e:
     logger.exception(e)
     sys.exit("Erro fatal, stacktrace acima")
 
 app: FastAPI = FastAPI()
 
-# ~ async def get_aurl(url: str = "") -> str:
-    # ~ """Get url with AIOHTTP"""
-    # ~ ## FIXME aiodns no windows não me deixa testar
-    # ~ async with aiohttp.ClientSession() as session:
-        # ~ async with session.get(url) as response:
-            # ~ if response.status == "200":
-                # ~ data: str = await response.json()
-                # ~ if data:
-                    # ~ return data
-    # ~ return {"status": True}
+engine: object = create_engine(os.getenv("DB_URL",
+    default = "sqlite+pysqlite:///:memory:"), echo = True)
+Base.metadata.create_all(engine)
 
 async def get_status(url: str) -> int:
     """Get HTTP status code with requests"""
@@ -111,11 +123,8 @@ async def status(lang: str = 'br') -> dict:
 async def users(lang: str = "br") -> dict:
     """GET /users"""
     try:
-        return {
-            "status": True,
-            "message": await get_json("/".join([sites[lang],
-                "origins", "users"])),
-        }
+        return await get_json("/".join([sites[lang],
+            "origins", "users"]))
     except Exception as e:
         return {
             "status": False,
@@ -127,11 +136,8 @@ async def user_name(name: str = "", lang: str = "br") -> dict:
     """GET /users?name"""
     try:
         if name not in ["", " ", None, False]:
-            return {
-                "status": True,
-                "message": await get_json("/".join([sites[lang],
-                    f"users?name={name}"])),
-            }
+            return await get_json("/".join([sites[lang],
+                f"users?name={name}"]))
         else:
             return {
                 "status": False,
@@ -148,11 +154,8 @@ async def user_id(uid: str = "", lang: str = "br") -> dict:
     """GET /users/uid"""
     try:
         if uid not in ["", " ", None, False]:
-            return {
-                "status": True,
-                "message": await get_json("/".join([sites[lang],
-                    "users", f"{uid}"])),
-            }
+            return await get_json("/".join([sites[lang],
+                "users", f"{uid}"]))
         else:
             return {
                 "status": False,
@@ -189,12 +192,12 @@ async def player(pid: str = "", lang: str = "br") -> dict:
 
 @app.get("/matches/{pid}")
 async def matches(
-    pid: str = "",
+    pid: str,
     offset: int = 0,
     limit: int = 10,
-    start_time: str =  (datetime.datetime.now(datetime.UTC) - 
+    start_time: float = (datetime.datetime.now(datetime.UTC) - 
         datetime.timedelta(days = 1)).timestamp(),
-    end_time: str = datetime.datetime.now(datetime.UTC).timestamp(),
+    end_time: float = datetime.datetime.now(datetime.UTC).timestamp(),
     lang: str = "br",
 ) -> dict:
     """GET /matches/v1/uniquePlayerId/ids"""
@@ -205,10 +208,10 @@ async def matches(
                 "&".join([f"ids?offset={offset}", f"limit={limit}", 
                 f"""start_time=\
 {datetime.datetime.fromtimestamp(
-start_time).strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]}""",
+start_time).strftime("%Y-%m-%d %H:%M:%S.%f")}""",
                 f"""end_time=\
 {datetime.datetime.fromtimestamp(
-end_time).strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]}"""
+end_time).strftime("%Y-%m-%d %H:%M:%S.%f")}"""
             ])]))
         else:
             return {
@@ -223,14 +226,14 @@ end_time).strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]}"""
 
 @app.get("/match/{mid}")
 async def match(
-    mid: str = "",
+    mid: str,
     lang: str = "br",
 ) -> dict:
     """GET /matches/v1/uniqueMatchId"""
     try:
         if mid not in ["", " ", None, False]:
             return await get_json("/".join([sites[lang],
-                "api", "public", "matches", "v1", f"{mid}"]))
+                "matches", "v1", f"{mid}"]))
         else:
             return {
                 "status": False,
@@ -246,11 +249,8 @@ async def match(
 async def pid2uid(pid: str, lang: str = "br") -> dict:
     """Get uniqueHabboId from uniquePlayerId"""
     try:
-        return {
-            "status": True,
-            "message": await get_json("/".join([sites[lang],
-                "users", "by-playerId", f"{pid}"])),
-        }
+        return await get_json("/".join([sites[lang],
+            "users", "by-playerId", f"{pid}"]))
     except Exception as e:
         return {
             "status": False,
@@ -331,3 +331,292 @@ async def name2uid(pid: str, lang: str = "br") -> dict:
             "status": False,
             "message": repr(e),
         }
+
+async def dbo_insert(queries: list[str]) -> None:
+    """Persiste dados no banco"""
+    try:
+        with Session(engine) as session:
+            session.add_all(queries)
+            session.commit()
+    except IntegrityError:
+        raise
+    except Exception as e:
+        logger.exception(e)
+
+async def dbo_update(statement: str) -> None:
+    """Atualiza dados no banco"""
+    try:
+        with Session(engine) as session:
+            session.execute(statement)
+            session.commit()
+    except IntegrityError:
+        raise
+    except Exception as e:
+        logger.exception(e)
+
+async def extract_participants(match_id: str,
+    participants: list[dict]) -> list[MatchPlayer]:
+    """Transforma os jogadores em modelos"""
+    return [MatchPlayer(
+            matchPlayerId = f"{match_id}_{p['gamePlayerId']}",
+            gamePlayerId= str(p["gamePlayerId"]),
+            gameScore = int(p["gameScore"]),
+            playerPlacement = int(p["playerPlacement"]),
+            teamId = int(p["teamId"]),
+            teamPlacement = int(p["teamPlacement"]),
+            timesStunned = int(p["timesStunned"]),
+            powerUpPickups = int(p["powerUpPickups"]),
+            powerUpActivations = int(p["powerUpActivations"]),
+            tilesCleaned = int(p["tilesCleaned"]),
+            tilesColoured = int(p["tilesColoured"]),
+            tilesStolen = int(p["tilesStolen"]),
+            tilesLocked = int(p["tilesLocked"]),
+            tilesColouredForOpponents = int(
+                p["tilesColouredForOpponents"]),
+        ) for p in participants]
+
+async def extract_teams(match_id: str, teams: list[dict]) -> list[MatchTeam]:
+    """Transforma os times em modelos"""
+    return [MatchTeam(
+        matchTeamId = f"{match_id}_{t['teamId']}",
+        teamId = int(t["teamId"]),
+        win = bool(t["win"]),
+        teamScore = int(t["teamScore"]),
+        teamPlacement = int(t["teamPlacement"]),
+    ) for t in teams]
+
+async def extract_match(data: str) -> Match:
+    """Transforma partida em modelo"""
+    return Match(
+        matchId = str(data["metadata"]["matchId"]),
+        gameCreation = int(data["info"]["gameCreation"]),
+        gameDuration = int(data["info"]["gameDuration"]),
+        gameEnd = int(data["info"]["gameEnd"]),
+        gameMode = str(data["info"]["gameMode"]),
+        mapId = int(data["info"]["mapId"]),
+        ranked = bool(data["info"]["ranked"]),
+        participants = await extract_participants(
+            str(data["metadata"]["matchId"]),
+            data["info"]["participants"]),
+        teams = await extract_teams(str(data["metadata"]["matchId"]),
+            data["info"]["teams"]),
+    )
+
+async def extract_user(data: str) -> User:
+    """Transforma partida em modelo"""
+    return User(
+        bouncerPlayerId = str(data["bouncerPlayerId"]),
+        uniqueId = str(data["uniqueId"]),
+        name = str(data["name"]),
+        figureString = str(data["figureString"]),
+        lastAccessTime = int(datetime.datetime.strptime(
+            data["lastAccessTime"], "%Y-%m-%dT%H:%M:%S.%f%z").timestamp()),
+        memberSince = int(datetime.datetime.strptime(
+            data["memberSince"], "%Y-%m-%dT%H:%M:%S.%f%z").timestamp()),
+        motto = str(data["motto"]),
+        profileVisible = bool(data["profileVisible"]),
+        currentLevel = int(data["currentLevel"]),
+        currentLevelCompletePercent = int(data["currentLevelCompletePercent"]),
+        starGemCount = int(data["starGemCount"]),
+        totalExperience = int(data["totalExperience"]),
+        selectedBadges = [Badge(
+            code = str(b["code"]),
+            badgeIndex = int(b["badgeIndex"]),
+            name = str(b["name"]),
+            description = str(b["description"]),
+            user_id = str(data["bouncerPlayerId"]),
+        ) for b in data["selectedBadges"]],
+    )
+
+async def extract_user_update(data: str) -> dict:
+    """Atualiza dados variáveis"""
+    return dict(
+        name = str(data["name"]),
+        figureString = str(data["figureString"]),
+        lastAccessTime = int(datetime.datetime.strptime(
+            data["lastAccessTime"], "%Y-%m-%dT%H:%M:%S.%f%z").timestamp()),
+        motto = str(data["motto"]),
+        profileVisible = bool(data["profileVisible"]),
+        currentLevel = int(data["currentLevel"]),
+        currentLevelCompletePercent = int(data["currentLevelCompletePercent"]),
+        starGemCount = int(data["starGemCount"]),
+        totalExperience = int(data["totalExperience"]),
+    )
+
+async def update_matches(match_ids: list[str]) -> None:
+    """Atualiza banco de dados com partidas"""
+    ## TODO: fazer do jeito certo quando tiver tempo que essa porra vai
+    ## dar merda
+    try:
+        for match_id in match_ids:
+            try:
+                with Session(engine) as session:
+                    session.scalars(select(Match).where(
+                        Match.matchId == match_id)).one()
+            except NoResultFound:
+                _match: dict = await match(match_id)
+                if _match["status"]:
+                    await dbo_insert([await extract_match(_match["message"])])
+    except Exception as e:
+        logger.exception(e)
+
+async def update_user(nome: str, **kwargs) -> None:
+    """Atualiza usuário no banco de dados"""
+    try:
+        user: dict = await user_name(nome)
+        if user["status"]:
+            logger.info(user["message"])
+            try:
+                _user: dict = await extract_user(user["message"])
+                await dbo_insert([_user])
+            except IntegrityError:
+                _user: dict = await extract_user_update(user["message"])
+                await dbo_update(update(User).where(
+                    User.name == nome).values(**_user))
+            _matches: dict = await matches(
+                user["message"]["bouncerPlayerId"], **kwargs)
+            if _matches["status"]:
+                await update_matches(_matches["message"])
+    except Exception as e:
+        logger.exception(e)
+
+async def create_user(nome: str, **kwargs) -> None:
+    """Cria usuário no banco de dados"""
+    try:
+        user: dict = await user_name(nome)
+        if user["status"]:
+            logger.info(user["message"])
+            try:
+                _user: dict = await extract_user(user["message"])
+                await dbo_insert([_user])
+            except IntegrityError:
+                _user: dict = await extract_user_update(user["message"])
+                await dbo_update(update(User).where(
+                    User.name == nome).values(**_user))
+            _matches: dict = await matches(
+                user["message"]["bouncerPlayerId"], **kwargs)
+            if _matches["status"]:
+                await update_matches(_matches["message"])
+                while _matches["status"] and len(_matches["message"]) > 1:
+                    logger.warning(f"""matches found: \
+{len(_matches['message'])}, offset: {kwargs['offset']}, limit: \
+{kwargs['limit']}""")
+                    # ~ logger.warning(f"matches: {_matches['message']}")
+                    kwargs["offset"] += 300
+                    _matches = await matches(
+                        user["message"]["bouncerPlayerId"], **kwargs)
+                    if _matches["status"]:
+                        await update_matches(_matches["message"])
+    except Exception as e:
+        logger.exception(e)
+
+@app.get("/atualizar/{nome}")
+async def atualizar(
+    nome: str,
+    offset: int = 0,
+    limit: int = 10,
+    start_time: float = (datetime.datetime.now(datetime.UTC) - 
+        datetime.timedelta(days = 1)).timestamp(),
+    end_time: float = datetime.datetime.now(datetime.UTC).timestamp(),
+    lang: str = "br",
+) -> dict:
+    """GET /atualizar"""
+    try:
+        with Session(engine) as session:
+            rank_stmt: object = select(Rank).where(Rank.nome == nome)
+            try:
+                rank: Rank = session.scalars(rank_stmt).one()
+            except NoResultFound:
+                await dbo_insert([Rank(nome = nome, pontos = 0)])
+            rank: Rank = session.scalars(rank_stmt).one()
+            await update_user(
+                nome,
+                offset = offset,
+                limit = limit,
+                start_time = start_time,
+                end_time = end_time,
+                lang = lang,
+            )
+            user_stmt: object = select(User).where(User.name == nome)
+            user_id: str = session.scalars(user_stmt).one().bouncerPlayerId
+            score_stmt: object = select(MatchPlayer.gameScore).select_from(
+                Match).join(MatchPlayer,
+                Match.matchId == MatchPlayer.match_id).where(
+                MatchPlayer.gamePlayerId == user_id, Match.ranked == 1)
+            scores: object = session.scalars(score_stmt)
+            await dbo_update(update(Rank).where(
+                Rank.nome == nome).values(pontos = sum(scores)))
+            total: int = session.scalars(select(Rank.pontos).where(
+                Rank.nome == nome)).one()
+        return {
+            "status": True,
+            "message": f"Total de pontos para {nome}: {total}",
+        }
+    except Exception as e:
+        logger.exception(e)
+        return {
+            "status": False,
+            "message": repr(e),
+        }
+
+@app.get("/criar/{nome}")
+async def criar(
+    nome: str,
+    offset: int = 0,
+    limit: int = 300,
+    start_time: float = (datetime.datetime.now(datetime.UTC) - 
+        datetime.timedelta(days = 10)).timestamp(),
+    end_time: float = datetime.datetime.now(datetime.UTC).timestamp(),
+    lang: str = "br",
+) -> dict:
+    """GET /atualizar"""
+    try:
+        with Session(engine) as session:
+            rank_stmt: object = select(Rank).where(Rank.nome == nome)
+            try:
+                rank: Rank = session.scalars(rank_stmt).one()
+            except NoResultFound:
+                await dbo_insert([Rank(nome = nome, pontos = 0)])
+            rank: Rank = session.scalars(rank_stmt).one()
+            await create_user(
+                nome,
+                offset = offset,
+                limit = limit,
+                start_time = start_time,
+                end_time = end_time,
+                lang = lang,
+            )
+            user_stmt: object = select(User).where(User.name == nome)
+            user_id: str = session.scalars(user_stmt).one().bouncerPlayerId
+            score_stmt: object = select(MatchPlayer.gameScore).select_from(
+                Match).join(MatchPlayer,
+                Match.matchId == MatchPlayer.match_id).where(
+                MatchPlayer.gamePlayerId == user_id, Match.ranked == 1)
+            scores: object = session.scalars(score_stmt)
+            await dbo_update(update(Rank).where(
+                Rank.nome == nome).values(pontos = sum(scores)))
+            total: int = session.scalars(select(Rank.pontos).where(
+                Rank.nome == nome)).one()
+        return {
+            "status": True,
+            "message": f"Total de pontos para {nome}: {total}",
+        }
+    except Exception as e:
+        logger.exception(e)
+        return {
+            "status": False,
+            "message": repr(e),
+        }
+
+@app.get("/placar")
+async def placar(lang: str = "br") -> dict:
+    """Retorna placar"""
+    try:
+        with Session(engine) as session:
+            ranks: object = select(Rank)
+            rankings: dict = {r.nome: r.pontos for r in session.scalars(
+                select(Rank))}
+        return rankings
+    except Exception as e:
+        logger.exception(e)
+        return {"Morgona": 0}
