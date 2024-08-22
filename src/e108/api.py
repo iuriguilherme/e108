@@ -646,7 +646,7 @@ async def placar(lang: str = "br") -> dict:
         logger.exception(e)
         return {"Morgona": 0}
 
-@um.get("/remove")
+@um.get("/remove/{nome}")
 async def remove(nome: str, lang: str = "br") -> dict:
     """Remove do placar"""
     try:
