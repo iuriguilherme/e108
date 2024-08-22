@@ -625,3 +625,5 @@ async def placar(lang: str = "br") -> dict:
     except Exception as e:
         logger.exception(e)
         return {"Morgona": 0}
+
+app.include_router(um)
