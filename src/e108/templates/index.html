@@ -14,29 +14,19 @@
     >Logout &gt;&gt;</a>
 -->
     <a
-        class="btn btn-warning btn-lg"
+        class="btn btn-success btn-lg"
         role="button"
         href="{{ url_for('battleball') }}"
     >&gt;&gt; Ranking Battle Ball &lt;&lt;</a>
     <a
         class="btn btn-info btn-lg"
         role="button"
-        href="{{ url_for(
-            'carregar',
-            color = 'info',
-            pagina = 'info',
-            title = 'F.A.Q.',
-        ) }}"
+        href="{{ url_for('info') }}"
     >O que &eacute; este site&quest;</a>
     <a
         class="btn btn-info btn-lg"
         role="button"
-        href="{{ url_for(
-            'carregar',
-            color = 'info',
-            pagina = 'comunidade',
-            title = 'Links úteis',
-        ) }}"
+        href="{{ url_for('comunidade') }}"
     >Links comunidade Origins BR</a>
     <a
         class="btn btn-danger btn-lg"

@@ -109,6 +109,66 @@ async def battleball() -> str:
             return f"""O erro foi tão foda que nem a página de erro \
 carregou: {jsonify(repr(e1))}"""
 
+@app.route("/comunidade")
+async def comunidade() -> str:
+    """Links úteis e outros nem tanto"""
+    try:
+        return await render_template(
+            "comunidade.html",
+            color = "info",
+            description = description,
+            name = name,
+            site = site,
+            title = "Links úteis",
+            version = version,
+        )
+    except Exception as e:
+        logger.exception(e)
+        try:
+            return await render_template(
+                "error.html",
+                description = description,
+                error = repr(e),
+                name = name,
+                site = site,
+                title = "Erro",
+                version = version,
+            )
+        except Exception as e1:
+            logger.exception(e1)
+            return f"""O erro foi tão foda que nem a página de erro \
+carregou: {jsonify(repr(e1))}"""
+
+@app.route("/info")
+async def info() -> str:
+    """Informações sobre este site"""
+    try:
+        return await render_template(
+            "info.html",
+            color = "info",
+            description = description,
+            name = name,
+            site = site,
+            title = "F.A.Q.",
+            version = version,
+        )
+    except Exception as e:
+        logger.exception(e)
+        try:
+            return await render_template(
+                "error.html",
+                description = description,
+                error = repr(e),
+                name = name,
+                site = site,
+                title = "Erro",
+                version = version,
+            )
+        except Exception as e1:
+            logger.exception(e1)
+            return f"""O erro foi tão foda que nem a página de erro \
+carregou: {jsonify(repr(e1))}"""
+
 @app.errorhandler(400)
 @app.route("/error_400")
 async def error_400(*exceptions: Exception) -> str:
