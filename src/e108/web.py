@@ -114,7 +114,7 @@ async def comunidade() -> str:
     try:
         return await render_template(
             "comunidade.html",
-            color = "info",
+            color = "primary",
             description = description,
             name = name,
             site = site,
@@ -144,7 +144,7 @@ async def info() -> str:
     try:
         return await render_template(
             "info.html",
-            color = "info",
+            color = "primary",
             description = description,
             name = name,
             site = site,
