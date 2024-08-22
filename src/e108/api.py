@@ -646,4 +646,23 @@ async def placar(lang: str = "br") -> dict:
         logger.exception(e)
         return {"Morgona": 0}
 
+@um.get("/remove")
+async def remove(nome: str, lang: str = "br") -> dict:
+    """Remove do placar"""
+    try:
+        with Session(engine) as session:
+            remove_stmt: object = delete(Rank).where(nome = nome)
+            session.execute(remove_stmt)
+            session.commit()
+        return {
+            "status": True,
+            "message": f"{nome} removido do placar",
+        }
+    except Exception as e:
+        logger.exception(e)
+        return {
+            "status": False,
+            "message": repr(e),
+        }
+
 app.include_router(um)
