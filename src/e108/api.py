@@ -14,7 +14,10 @@ sites: dict[str] = {
 
 try:
     import datetime
-    from fastapi import FastAPI
+    from fastapi import (
+        APIRouter,
+        FastAPI,
+    )
     import requests
     import os
     from quart import Quart
@@ -43,6 +46,8 @@ except Exception as e:
     sys.exit("Erro fatal, stacktrace acima")
 
 app: FastAPI = FastAPI()
+
+um: APIRouter = APIRouter(prefix = "/api/v1")
 
 engine: object = create_engine(os.getenv("DB_URL",
     default = "sqlite+pysqlite:///:memory:"), echo = True)
@@ -94,7 +99,7 @@ async def get_json(url: str) -> dict:
         "message": "Servidor do Origins não retornou porra nenhuma",
     }
 
-@app.get("/")
+@um.get("/")
 async def index() -> dict:
     """GET /"""
     return {
@@ -103,7 +108,7 @@ async def index() -> dict:
 https://origins.habbo.com/api/public/api-docs/"""
     }
 
-@app.get("/teste")
+@um.get("/teste")
 async def teste() -> dict:
     """GET /teste"""
     return {
@@ -111,7 +116,7 @@ async def teste() -> dict:
         "message": await get_request("https://httpbin.org/headers"),
     }
 
-@app.get("/status")
+@um.get("/status")
 async def status(lang: str = 'br') -> dict:
     """GET /ping"""
     return {
@@ -119,7 +124,7 @@ async def status(lang: str = 'br') -> dict:
         "response": await get_status("/".join([sites[lang], "ping"])),
     }
 
-@app.get("/users")
+@um.get("/users")
 async def users(lang: str = "br") -> dict:
     """GET /users"""
     try:
@@ -131,7 +136,7 @@ async def users(lang: str = "br") -> dict:
             "message": repr(e),
         }
 
-@app.get("/user/name/{name}")
+@um.get("/user/name/{name}")
 async def user_name(name: str = "", lang: str = "br") -> dict:
     """GET /users?name"""
     try:
@@ -149,7 +154,7 @@ async def user_name(name: str = "", lang: str = "br") -> dict:
             "message": repr(e),
         }
 
-@app.get("/user/id/{uid}")
+@um.get("/user/id/{uid}")
 async def user_id(uid: str = "", lang: str = "br") -> dict:
     """GET /users/uid"""
     try:
@@ -167,7 +172,7 @@ async def user_id(uid: str = "", lang: str = "br") -> dict:
             "message": repr(e),
         }
 
-@app.get("/player/{pid}")
+@um.get("/player/{pid}")
 async def player(pid: str = "", lang: str = "br") -> dict:
     """Get user by pid"""
     try:
@@ -190,7 +195,7 @@ async def player(pid: str = "", lang: str = "br") -> dict:
             "message": repr(e),
         }
 
-@app.get("/matches/{pid}")
+@um.get("/matches/{pid}")
 async def matches(
     pid: str,
     offset: int = 0,
@@ -224,7 +229,7 @@ end_time).strftime("%Y-%m-%d %H:%M:%S.%f")}"""
             "message": repr(e),
         }
 
-@app.get("/match/{mid}")
+@um.get("/match/{mid}")
 async def match(
     mid: str,
     lang: str = "br",
@@ -245,7 +250,7 @@ async def match(
             "message": repr(e),
         }
 
-@app.get("/pid2uid")
+@um.get("/pid2uid")
 async def pid2uid(pid: str, lang: str = "br") -> dict:
     """Get uniqueHabboId from uniquePlayerId"""
     try:
@@ -257,7 +262,7 @@ async def pid2uid(pid: str, lang: str = "br") -> dict:
             "message": repr(e),
         }
 
-@app.get("/uid2pid")
+@um.get("/uid2pid")
 async def uid2pid(uid: str, lang: str = "br") -> dict:
     """Get uniquePlayerId from uniqueHabboId"""
     try:
@@ -282,7 +287,7 @@ async def uid2pid(uid: str, lang: str = "br") -> dict:
             "message": repr(e),
         }
 
-@app.get("/name2pid")
+@um.get("/name2pid")
 async def name2pid(name: str, lang: str = "br") -> dict:
     """Get uniquePlayerId from name"""
     try:
@@ -307,7 +312,7 @@ async def name2pid(name: str, lang: str = "br") -> dict:
             "message": repr(e),
         }
 
-@app.get("/name2uid")
+@um.get("/name2uid")
 async def name2uid(pid: str, lang: str = "br") -> dict:
     """Get uniqueHabboId from name"""
     try:
@@ -510,7 +515,7 @@ async def create_user(nome: str, **kwargs) -> None:
     except Exception as e:
         logger.exception(e)
 
-@app.get("/atualizar/{nome}")
+@um.get("/atualizar/{nome}")
 async def atualizar(
     nome: str,
     offset: int = 0,
@@ -559,7 +564,7 @@ async def atualizar(
             "message": repr(e),
         }
 
-@app.get("/criar/{nome}")
+@um.get("/criar/{nome}")
 async def criar(
     nome: str,
     offset: int = 0,
@@ -608,7 +613,7 @@ async def criar(
             "message": repr(e),
         }
 
-@app.get("/placar")
+@um.get("/placar")
 async def placar(lang: str = "br") -> dict:
     """Retorna placar"""
     try:
