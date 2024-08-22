@@ -474,7 +474,8 @@ async def update_user(nome: str, **kwargs) -> None:
             try:
                 _user: dict = await extract_user(user["message"])
                 await dbo_insert([_user])
-            except IntegrityError:
+            except IntegrityError as e:
+                logger.exception(e)
                 _user: dict = await extract_user_update(user["message"])
                 await dbo_update(update(User).where(
                     User.name == nome).values(**_user))
@@ -494,7 +495,8 @@ async def create_user(nome: str, **kwargs) -> None:
             try:
                 _user: dict = await extract_user(user["message"])
                 await dbo_insert([_user])
-            except IntegrityError:
+            except IntegrityError as e:
+                logger.exception(e)
                 _user: dict = await extract_user_update(user["message"])
                 await dbo_update(update(User).where(
                     User.name == nome).values(**_user))
@@ -543,7 +545,11 @@ async def atualizar(
                 lang = lang,
             )
             user_stmt: object = select(User).where(User.name == nome)
-            user_id: str = session.scalars(user_stmt).one().bouncerPlayerId
+            try:
+                user_id: str = session.scalars(user_stmt).one().bouncerPlayerId
+            except NoResultFound as e:
+                logger.exception(e)
+                user_id: str = (await name2pid(nome))["message"]
             score_stmt: object = select(MatchPlayer.gameScore).select_from(
                 Match).join(MatchPlayer,
                 Match.matchId == MatchPlayer.match_id).where(
@@ -592,7 +598,11 @@ async def criar(
                 lang = lang,
             )
             user_stmt: object = select(User).where(User.name == nome)
-            user_id: str = session.scalars(user_stmt).one().bouncerPlayerId
+            try:
+                user_id: str = session.scalars(user_stmt).one().bouncerPlayerId
+            except NoResultFound as e:
+                logger.exception(e)
+                user_id: str = (await name2pid(nome))["message"]
             score_stmt: object = select(MatchPlayer.gameScore).select_from(
                 Match).join(MatchPlayer,
                 Match.matchId == MatchPlayer.match_id).where(
