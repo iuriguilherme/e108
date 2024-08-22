@@ -23,6 +23,7 @@ try:
     from quart import Quart
     from sqlalchemy import (
         create_engine,
+        delete,
         MetaData,
         select,
         update,
