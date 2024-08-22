@@ -620,7 +620,7 @@ async def placar(lang: str = "br") -> dict:
         with Session(engine) as session:
             ranks: object = select(Rank)
             rankings: list[tuple] = sorted([(r.nome, r.pontos) for r in \
-                session.scalars(select(Rank))])
+                session.scalars(select(Rank).where(Rank.pontos > 0))])
         return rankings
     except Exception as e:
         logger.exception(e)
