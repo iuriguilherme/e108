@@ -7,9 +7,9 @@ logging.basicConfig(level = log_level)
 logger: logging.Logger = logging.getLogger(__name__)
 
 sites: dict[str] = {
-    'br': "https://origins.habbo.com.br/api/public/",
-    'es': "https://origins.habbo.es/api/public/",
-    'en': "https://origins.habbo.com/api/public/",
+    'br': "https://origins.habbo.com.br/api/public",
+    'es': "https://origins.habbo.es/api/public",
+    'en': "https://origins.habbo.com/api/public",
 }
 
 try:
@@ -450,8 +450,6 @@ async def extract_user_update(data: str) -> dict:
 
 async def update_matches(match_ids: list[str]) -> None:
     """Atualiza banco de dados com partidas"""
-    ## TODO: fazer do jeito certo quando tiver tempo que essa porra vai
-    ## dar merda
     try:
         for match_id in match_ids:
             try:
@@ -504,16 +502,26 @@ async def create_user(nome: str, **kwargs) -> None:
                 user["message"]["bouncerPlayerId"], **kwargs)
             if _matches["status"]:
                 await update_matches(_matches["message"])
-                while _matches["status"] and len(_matches["message"]) > 1:
-                    logger.warning(f"""matches found: \
-{len(_matches['message'])}, offset: {kwargs['offset']}, limit: \
-{kwargs['limit']}""")
-                    # ~ logger.warning(f"matches: {_matches['message']}")
-                    kwargs["offset"] += 300
-                    _matches = await matches(
-                        user["message"]["bouncerPlayerId"], **kwargs)
-                    if _matches["status"]:
-                        await update_matches(_matches["message"])
+                dias_atras: int = 1
+                while kwargs["start_time"] > (datetime.datetime.now(
+                    datetime.UTC) - datetime.timedelta(days = 7)).timestamp():
+                    while _matches["status"] and len(_matches["message"]) > 1:
+                        logger.warning(f"""matches found: \
+{len(_matches['message'])}, parâmetros: {kwargs}""")
+                        # ~ logger.warning(f"matches: {_matches['message']}")
+                        kwargs["offset"] += kwargs["limit"]
+                        _matches = await matches(
+                            user["message"]["bouncerPlayerId"], **kwargs)
+                        if _matches["status"]:
+                            await update_matches(_matches["message"])
+                    kwargs["start_time"] = (datetime.datetime.now(
+                        datetime.UTC) - datetime.timedelta(days = (
+                        dias_atras + 1))).timestamp()
+                    kwargs["end_time"] = (datetime.datetime.now(
+                        datetime.UTC) - datetime.timedelta(
+                        days = dias_atras)).timestamp()
+                    kwargs["offset"] = kwargs["limit"]
+                    dias_atras += 1
     except Exception as e:
         logger.exception(e)
 
@@ -521,7 +529,7 @@ async def create_user(nome: str, **kwargs) -> None:
 async def atualizar(
     nome: str,
     offset: int = 0,
-    limit: int = 10,
+    limit: int = 300,
     start_time: float = (datetime.datetime.now(datetime.UTC) - 
         datetime.timedelta(days = 1)).timestamp(),
     end_time: float = datetime.datetime.now(datetime.UTC).timestamp(),
@@ -546,6 +554,7 @@ async def atualizar(
             )
             user_stmt: object = select(User).where(User.name == nome)
             try:
+                ## FIXME: não tem razão pra isso não funcionar
                 user_id: str = session.scalars(user_stmt).one().bouncerPlayerId
             except NoResultFound as e:
                 logger.exception(e)
@@ -576,7 +585,7 @@ async def criar(
     offset: int = 0,
     limit: int = 300,
     start_time: float = (datetime.datetime.now(datetime.UTC) - 
-        datetime.timedelta(days = 10)).timestamp(),
+        datetime.timedelta(days = 1)).timestamp(),
     end_time: float = datetime.datetime.now(datetime.UTC).timestamp(),
     lang: str = "br",
 ) -> dict:

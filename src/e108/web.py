@@ -13,7 +13,6 @@ try:
         render_template,
         request,
     )
-    # ~ from quart_sqlalchemy.framework import QuartSQLAlchemy
     # ~ from quart_wtf.csrf import CSRFProtect
     import secrets
     # ~ from werkzeug.utils import secure_filename
@@ -169,6 +168,39 @@ async def info() -> str:
             return f"""O erro foi tão foda que nem a página de erro \
 carregou: {jsonify(repr(e1))}"""
 
+@app.route("/atualiza")
+async def atualiza()-> str:
+    """Atualiza rank último dia"""
+    try:
+        retorno: list[dict] = []
+        for buser in busers:
+            retorno.append(await atualizar(buser))
+        return await render_template(
+            "error.html",
+            description = description,
+            error = jsonify(retorno),
+            name = name,
+            site = site,
+            title = "Dessa vez não é um erro",
+            version = version,
+        )
+    except Exception as e:
+        logger.exception(e)
+        try:
+            return await render_template(
+                "error.html",
+                description = description,
+                error = repr(e),
+                name = name,
+                site = site,
+                title = "Erro",
+                version = version,
+            )
+        except Exception as e1:
+            logger.exception(e1)
+            return f"""O erro foi tão foda que nem a página de erro \
+carregou: {jsonify(repr(e1))}"""
+
 @app.errorhandler(400)
 @app.route("/error_400")
 async def error_400(*exceptions: Exception) -> str:
@@ -241,27 +273,3 @@ em contato com o suporte.""",
         logger.exception(e)
         return f"""O erro foi tão foda que nem a página de erro carregou: \
 {jsonify(repr(e))}"""
-
-@app.route("/teste")
-async def teste(nome: str = "iggy1")-> str:
-    """Teste"""
-    try:
-        for buser in busers:
-            await atualiza_rank(buser)
-        return "OK"
-    except Exception as e:
-        logger.exception(e)
-        try:
-            return await render_template(
-                "error.html",
-                description = description,
-                error = repr(e),
-                name = name,
-                site = site,
-                title = "Erro",
-                version = version,
-            )
-        except Exception as e1:
-            logger.exception(e1)
-            return f"""O erro foi tão foda que nem a página de erro \
-carregou: {jsonify(repr(e1))}"""

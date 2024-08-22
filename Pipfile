@@ -10,11 +10,10 @@ name = "pypi"
 fastapi = {extras = ["all"], version = "*"}
 quart = {extras = ["dotenv"], version = "*"}
 #quart-auth = "*"
-#quart-sqlalchemy = "*"
 #quart-wtforms = "*"
 requests = "*"
-uvicorn = "*"
 sqlalchemy = "*"
+uvicorn = "*"
 
 [dev-packages]
 e108 = {file = ".", editable = true}
