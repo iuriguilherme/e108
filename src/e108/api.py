@@ -619,8 +619,8 @@ async def placar(lang: str = "br") -> dict:
     try:
         with Session(engine) as session:
             ranks: object = select(Rank)
-            rankings: dict = sorted({r.nome: r.pontos for r in session.scalars(
-                select(Rank))}, reverse = True)
+            rankings: list[tuple] = sorted([(r.nome, r.pontos) for r in \
+                session.scalars(select(Rank))])
         return rankings
     except Exception as e:
         logger.exception(e)
