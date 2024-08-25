@@ -30,6 +30,7 @@ try:
         MultipleResultsFound,
         NoResultFound,
     )
+    import uuid
     from .common import (
         dbo_insert,
         dbo_select_one,
@@ -101,28 +102,36 @@ async def update_user_model(user: User, new_user: dict) -> User:
     """Aumenta listas do usuário"""
     try:
         user.figure_strings.append(UserFigureString(
+            uuid = str(uuid.uuid4()),
             user_id = new_user["bouncerPlayerId"],
             figureString = new_user["figureString"]))
         user.access_times.append(UserAccessTime(
+            uuid = str(uuid.uuid4()),
             user_id = new_user["bouncerPlayerId"],
             lastAccessTime = new_user["lastAccessTime"]))
         user.mottos.append(UserMotto(
+            uuid = str(uuid.uuid4()),
             user_id = new_user["bouncerPlayerId"],
             motto = new_user["motto"]))
         user.profile_visibilities.append(UserVisibility(
+            uuid = str(uuid.uuid4()),
             user_id = new_user["bouncerPlayerId"],
             profileVisible = new_user["profileVisible"]))
         user.levels.append(UserLevel(
+            uuid = str(uuid.uuid4()),
             user_id = new_user["bouncerPlayerId"],
             currentLevel = new_user["currentLevel"]))
         user.level_percents.append(UserLevelPercent(
+            uuid = str(uuid.uuid4()),
             user_id = new_user["bouncerPlayerId"],
             currentLevelCompletePercent = \
             new_user["currentLevelCompletePercent"]))
         user.star_gems.append(UserStarGem(
+            uuid = str(uuid.uuid4()),
             user_id = new_user["bouncerPlayerId"],
             starGemCount = new_user["starGemCount"]))
         user.experiences.append(UserExperience(
+            uuid = str(uuid.uuid4()),
             user_id = new_user["bouncerPlayerId"],
             totalExperience = new_user["totalExperience"]))
     except Exception as e:
@@ -280,6 +289,7 @@ async def extract_team(match_id: str, team: dict,
     lang: str = "br") -> MatchTeam:
     """Transforma time em modelo"""
     return MatchTeam(
+        uuid = str(uuid.uuid4()),
         teamId = int(team["teamId"]),
         match_id = f"{match_id}",
         win = bool(team["win"]),

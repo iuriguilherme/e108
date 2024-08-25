@@ -37,3 +37,5 @@ homo = 'echo adoro'
 prod = "python -m e108"
 pa = "python -m e108 api"
 pw = "python -m e108 web"
+## scripts
+up = "python scripts/atualizatodomundo.py"
