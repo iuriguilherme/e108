@@ -22,7 +22,7 @@ try:
         __name__ as name,
         __version__ as version,
     )
-    from .api import placar
+    from .api.v2 import get_placar
     # ~ from .forms import (
       # ~ TestForm,
     # ~ )
@@ -81,16 +81,28 @@ carregou: {jsonify(repr(e1))}"""
 async def battleball() -> str:
     """Ranking Battle Ball"""
     try:
-        return await render_template(
-            "battleball.html",
-            color = "success",
-            description = description,
-            name = name,
-            rankings = await placar(),
-            site = site,
-            title = "Ranking Battle Ball",
-            version = version,
-        )
+        placar: dict = await get_placar("um")
+        if placar["status"]:
+            return await render_template(
+                "battleball.html",
+                color = "success",
+                description = description,
+                name = name,
+                rankings = placar["message"],
+                site = site,
+                title = "Ranking Battle Ball",
+                version = version,
+            )
+        else:
+            return await render_template(
+                "error.html",
+                description = description,
+                error = placar["message"],
+                name = name,
+                site = site,
+                title = "Não deu certo",
+                version = version,
+            )
     except Exception as e:
         logger.exception(e)
         try:

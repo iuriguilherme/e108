@@ -1,4 +1,4 @@
-"""Modelos para Battle Ball"""
+"""Modelos para Battle Ball (versão 1)"""
 
 import logging
 logger: logging.Logger = logging.getLogger(__name__)

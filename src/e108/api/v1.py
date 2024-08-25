@@ -1,9 +1,6 @@
-"""api"""
+"""/api/v1"""
 
 import logging, sys
-
-log_level: int = logging.INFO
-logging.basicConfig(level = log_level)
 logger: logging.Logger = logging.getLogger(__name__)
 
 sites: dict[str] = {
@@ -16,9 +13,7 @@ try:
     import datetime
     from fastapi import (
         APIRouter,
-        FastAPI,
     )
-    import requests
     import os
     from quart import Quart
     from sqlalchemy import (
@@ -33,9 +28,17 @@ try:
         IntegrityError,
         NoResultFound,
     )
-    from .models.bb import (
-        Badge,
+    from .common import (
+        dbo_insert,
+        dbo_update,
+        get_json,
+        get_status,
+        get_text,
+        sites,
+    )
+    from ..models.bb.v1 import (
         Base,
+        Badge,
         Match,
         MatchPlayer,
         MatchTeam,
@@ -46,59 +49,11 @@ except Exception as e:
     logger.exception(e)
     sys.exit("Erro fatal, stacktrace acima")
 
-app: FastAPI = FastAPI()
-
-um: APIRouter = APIRouter(prefix = "/api/v1")
-
 engine: object = create_engine(os.getenv("DB_URL",
     default = "sqlite+pysqlite:///:memory:"), echo = True)
 Base.metadata.create_all(engine)
 
-async def get_status(url: str) -> int:
-    """Get HTTP status code with requests"""
-    try:
-        response: requests.Request = requests.get(url)
-        return response.status_code
-    except Exception as e:
-        logger.exception(e)
-    ## https://github.com/joho/7XX-rfc
-    return 776
-
-async def get_text(url: str) -> dict:
-    """Get text data with requests"""
-    try:
-        response: requests.Request = requests.get(url)
-        if response.status_code == 200:
-            data: str = response.text
-            if data:
-                return {
-                    "status": True,
-                    "message": data,
-                }
-    except Exception as e:
-        logger.exception(e)
-    return {
-        "status": False,
-        "message": "Servidor do Origins não retornou porra nenhuma",
-    }
-
-async def get_json(url: str) -> dict:
-    """Get json data with requests"""
-    try:
-        response: requests.Request = requests.get(url)
-        if response.status_code == 200:
-            data: str = response.json()
-            if data:
-                return {
-                    "status": True,
-                    "message": data,
-                }
-    except Exception as e:
-        logger.exception(e)
-    return {
-        "status": False,
-        "message": "Servidor do Origins não retornou porra nenhuma",
-    }
+um: APIRouter = APIRouter()
 
 @um.get("/")
 async def index() -> dict:
@@ -107,14 +62,6 @@ async def index() -> dict:
         "status": True,
         "message": """Lista de endpoints:\
 https://origins.habbo.com/api/public/api-docs/"""
-    }
-
-@um.get("/teste")
-async def teste() -> dict:
-    """GET /teste"""
-    return {
-        "status": True,
-        "message": await get_request("https://httpbin.org/headers"),
     }
 
 @um.get("/status")
@@ -138,7 +85,7 @@ async def users(lang: str = "br") -> dict:
         }
 
 @um.get("/user/name/{name}")
-async def user_name(name: str = "", lang: str = "br") -> dict:
+async def user_name(name: str, lang: str = "br") -> dict:
     """GET /users?name"""
     try:
         if name not in ["", " ", None, False]:
@@ -178,11 +125,11 @@ async def player(pid: str = "", lang: str = "br") -> dict:
     """Get user by pid"""
     try:
         if pid not in ["", " ", None, False]:
-            uid: dict = await get_json("/".join([sites[lang],
+            uid: dict = await get_text("/".join([sites[lang],
                 "users", "by-playerId", f"{pid}"]))
             if uid["status"]:
                 return await get_json("/".join([sites[lang],
-                    "users", f'{uid["message"]["uniqueId"]}']))
+                    "users", f"{uid['message']}"]))
             else:
                 return uid
         else:
@@ -214,10 +161,10 @@ async def matches(
                 "&".join([f"ids?offset={offset}", f"limit={limit}", 
                 f"""start_time=\
 {datetime.datetime.fromtimestamp(
-start_time).strftime("%Y-%m-%d %H:%M:%S.%f")}""",
+start_time).strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]}""",
                 f"""end_time=\
 {datetime.datetime.fromtimestamp(
-end_time).strftime("%Y-%m-%d %H:%M:%S.%f")}"""
+end_time).strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]}"""
             ])]))
         else:
             return {
@@ -255,7 +202,7 @@ async def match(
 async def pid2uid(pid: str, lang: str = "br") -> dict:
     """Get uniqueHabboId from uniquePlayerId"""
     try:
-        return await get_json("/".join([sites[lang],
+        return await get_text("/".join([sites[lang],
             "users", "by-playerId", f"{pid}"]))
     except Exception as e:
         return {
@@ -337,28 +284,6 @@ async def name2uid(pid: str, lang: str = "br") -> dict:
             "status": False,
             "message": repr(e),
         }
-
-async def dbo_insert(queries: list[str]) -> None:
-    """Persiste dados no banco"""
-    try:
-        with Session(engine) as session:
-            session.add_all(queries)
-            session.commit()
-    except IntegrityError:
-        raise
-    except Exception as e:
-        logger.exception(e)
-
-async def dbo_update(statement: str) -> None:
-    """Atualiza dados no banco"""
-    try:
-        with Session(engine) as session:
-            session.execute(statement)
-            session.commit()
-    except IntegrityError:
-        raise
-    except Exception as e:
-        logger.exception(e)
 
 async def extract_participants(match_id: str,
     participants: list[dict]) -> list[MatchPlayer]:
@@ -460,7 +385,7 @@ async def update_matches(match_ids: list[str]) -> None:
             except NoResultFound:
                 _match: dict = await match(match_id)
                 if _match["status"]:
-                    await dbo_insert([await extract_match(_match["message"])])
+                    await dbo_insert(engine, [await extract_match(_match["message"])])
     except Exception as e:
         logger.exception(e)
 
@@ -472,11 +397,11 @@ async def update_user(nome: str, **kwargs) -> None:
             logger.info(user["message"])
             try:
                 _user: dict = await extract_user(user["message"])
-                await dbo_insert([_user])
+                await dbo_insert(engine, [_user])
             except IntegrityError as e:
                 logger.exception(e)
                 _user: dict = await extract_user_update(user["message"])
-                await dbo_update(update(User).where(
+                await dbo_insert(engine, update(User).where(
                     User.name == nome).values(**_user))
             _matches: dict = await matches(
                 user["message"]["bouncerPlayerId"], **kwargs)
@@ -493,11 +418,11 @@ async def create_user(nome: str, **kwargs) -> None:
             logger.info(user["message"])
             try:
                 _user: dict = await extract_user(user["message"])
-                await dbo_insert([_user])
+                await dbo_insert(engine, [_user])
             except IntegrityError as e:
                 logger.exception(e)
                 _user: dict = await extract_user_update(user["message"])
-                await dbo_update(update(User).where(
+                await dbo_insert(engine, update(User).where(
                     User.name == nome).values(**_user))
             _matches: dict = await matches(
                 user["message"]["bouncerPlayerId"], **kwargs)
@@ -543,7 +468,7 @@ async def atualizar(
             try:
                 rank: Rank = session.scalars(rank_stmt).one()
             except NoResultFound:
-                await dbo_insert([Rank(nome = nome, pontos = 0)])
+                await dbo_insert(engine, [Rank(nome = nome, pontos = 0)])
             rank: Rank = session.scalars(rank_stmt).one()
             await update_user(
                 nome,
@@ -565,7 +490,7 @@ async def atualizar(
                 Match.matchId == MatchPlayer.match_id).where(
                 MatchPlayer.gamePlayerId == user_id, Match.ranked == 1)
             scores: object = session.scalars(score_stmt)
-            await dbo_update(update(Rank).where(
+            await dbo_insert(engine, update(Rank).where(
                 Rank.nome == nome).values(pontos = sum(scores)))
             total: int = session.scalars(select(Rank.pontos).where(
                 Rank.nome == nome)).one()
@@ -597,7 +522,7 @@ async def criar(
             try:
                 rank: Rank = session.scalars(rank_stmt).one()
             except NoResultFound:
-                await dbo_insert([Rank(nome = nome, pontos = 0)])
+                await dbo_insert(engine, [Rank(nome = nome, pontos = 0)])
             rank: Rank = session.scalars(rank_stmt).one()
             await create_user(
                 nome,
@@ -618,7 +543,7 @@ async def criar(
                 Match.matchId == MatchPlayer.match_id).where(
                 MatchPlayer.gamePlayerId == user_id, Match.ranked == 1)
             scores: object = session.scalars(score_stmt)
-            await dbo_update(update(Rank).where(
+            await dbo_insert(engine, update(Rank).where(
                 Rank.nome == nome).values(pontos = sum(scores)))
             total: int = session.scalars(select(Rank.pontos).where(
                 Rank.nome == nome)).one()
@@ -665,5 +590,3 @@ async def remove(nome: str, lang: str = "br") -> dict:
             "status": False,
             "message": repr(e),
         }
-
-app.include_router(um)
