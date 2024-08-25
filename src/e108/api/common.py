@@ -37,6 +37,7 @@ sites: dict[str] = {
 async def get_status(url: str) -> int:
     """Get HTTP status code with requests"""
     try:
+        logger.info(f"GET STATUS {url}")
         response: requests.Request = requests.get(url)
         return response.status_code
     except Exception as e:
@@ -47,6 +48,7 @@ async def get_status(url: str) -> int:
 async def get_text(url: str) -> dict:
     """Get text data with requests"""
     try:
+        logger.info(f"GET HTML {url}")
         response: requests.Request = requests.get(url)
         if response.status_code == 200:
             data: str = response.text
@@ -65,6 +67,7 @@ async def get_text(url: str) -> dict:
 async def get_json(url: str) -> dict:
     """Get json data with requests"""
     try:
+        logger.info(f"GET JSON {url}")
         response: requests.Request = requests.get(url)
         if response.status_code == 200:
             data: str = response.json()

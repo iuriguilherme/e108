@@ -245,10 +245,17 @@ async def extract_participant(match_id: str, participant: dict
     ) -> MatchPlayer:
     """Transforma jogador em modelo"""
     try:
-        new_player: dict = await user_id(await pid2uid(
-            participant['gamePlayerId']))
-        if new_player["status"]:
-            await update_user(new_player["message"]["name"])
+        player_id: dict = await pid2uid(participant["gamePlayerId"])
+        if player_id["status"]:
+            new_player: dict = await user_id(player_id["message"])
+            if new_player["status"]:
+                await update_user(new_player["message"]["name"], lang)
+            else:
+                logger.warning(f"""Usuário {player_id['message']} \
+não encontrado""")
+        else:
+            logger.warning(f"""Usuário {participant['gamePlayerId']} \
+não encontrado""")
     except Exception as e:
         logger.exception(e)
     return MatchPlayer(

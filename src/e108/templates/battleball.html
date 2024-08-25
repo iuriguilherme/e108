@@ -5,10 +5,11 @@
 <hr>
 <p>Botaram a API no ar, esperando o iggy botar o site no ar.</p>
 <ul class="list-group">
-    <li class="list-group-item">1: Ryco - 87315 pontos</li>
+    <li class="list-group-item">(1ª) LILO tem 690420 pontos</li>
+    <li class="list-group-item">(2ª) Butter tem 171157 pontos</li>
 {% for nome, pontos in rankings %}
     <li class="list-group-item">
-{{ loop.index + 1 }}: {{ nome }} - {{ pontos }} pontos</li>
+({{ loop.index + 2 }}ª) {{ nome }} tem {{ pontos }} pontos</li>
 {% endfor %}
 </ul>
 {% endblock %}

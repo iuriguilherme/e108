@@ -225,7 +225,8 @@ try:
             default = str(uuid.uuid4()))
         teamId: Mapped[int] = mapped_column(primary_key = True,
             unique = False)
-        match_id: Mapped[str] = mapped_column(ForeignKey("match.matchId"), primary_key = True, unique = False)
+        match_id: Mapped[str] = mapped_column(ForeignKey("match.matchId"),
+            primary_key = True, unique = False)
         # ~ players: Mapped[list["MatchPlayer"]] = relationship()
         updateTime: Mapped[int] = mapped_column(
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
