@@ -129,7 +129,7 @@ async def update_user_model(user: User, new_user: dict) -> User:
             logger.exception(e)
     return user
 
-async def extract_user(user: dict) -> User:
+async def extract_user(user: dict, lang: str = "br") -> User:
     """Transforma usuário em modelo"""
     u: User = User(
         uniqueId = str(user["uniqueId"]),
@@ -241,8 +241,8 @@ async def update_user(nome: str, lang: str = "br") -> dict:
             "message": repr(e),
         }
 
-async def extract_participant(match_id: str, participant: dict
-    ) -> MatchPlayer:
+async def extract_participant(match_id: str, participant: dict,
+    lang: str = "br") -> MatchPlayer:
     """Transforma jogador em modelo"""
     try:
         player_id: dict = await pid2uid(participant["gamePlayerId"])
@@ -276,7 +276,8 @@ não encontrado""")
             participant["tilesColouredForOpponents"]),
     )
 
-async def extract_team(match_id: str, team: dict) -> MatchTeam:
+async def extract_team(match_id: str, team: dict,
+    lang: str = "br") -> MatchTeam:
     """Transforma time em modelo"""
     return MatchTeam(
         teamId = int(team["teamId"]),
@@ -286,7 +287,7 @@ async def extract_team(match_id: str, team: dict) -> MatchTeam:
         teamPlacement = int(team["teamPlacement"]),
     )
 
-async def extract_match(match: dict) -> Match:
+async def extract_match(match: dict, lang: str = "br") -> Match:
     """Transforma partida em modelo"""
     return Match(
         matchId = str(match["metadata"]["matchId"]),
@@ -336,6 +337,8 @@ async def update_user_matches(
     try:
         await update_user(nome, lang)
         new_matches: dict = dict()
+        all_matches: set = set()
+        days_ago: int = 1
         agora: datetime.datetime = datetime.datetime.now(datetime.UTC)
         kwargs: dict = dict(
             offset = offset,
@@ -347,8 +350,6 @@ async def update_user_matches(
         new_user: object = await name2pid(nome)
         if new_user["status"]:
             user_id: dict = new_user["message"]
-            all_matches: set = set()
-            days_ago: int = 1
             last_start: float = (agora - \
                 datetime.timedelta(days = last_day)).timestamp()
             last_end: float = (agora - \
