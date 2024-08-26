@@ -46,7 +46,7 @@ try:
         leaderboard_id: Mapped[str] = mapped_column(String(36), 
             ForeignKey("leaderboard.uuid"), unique = False)
         name: Mapped[str] = mapped_column(String(255))
-        # ~ user_id: Mapped[str] = mapped_column(String(36),
+        # ~ user_id: Mapped[str] = mapped_column(String(255),
             # ~ ForeignKey("user.bouncerPlayerId"),
             # ~ unique = False)
         # ~ scores: Mapped[list["LeaderboardScore"]] = relationship()
@@ -104,7 +104,7 @@ try:
         __tablename__: str = "user_motto"
         uuid: Mapped[str] = mapped_column(String(36), primary_key = True,
             default = str(uuid.uuid4()))
-        user_id: Mapped[str] = mapped_column(String(36), 
+        user_id: Mapped[str] = mapped_column(String(255), 
             ForeignKey("user.bouncerPlayerId"))
         updateTime: Mapped[int] = mapped_column(
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
@@ -115,7 +115,7 @@ try:
         __tablename__: str = "user_access_time"
         uuid: Mapped[str] = mapped_column(String(36), primary_key = True,
             default = str(uuid.uuid4()))
-        user_id: Mapped[str] = mapped_column(String(36),
+        user_id: Mapped[str] = mapped_column(String(255),
             ForeignKey("user.bouncerPlayerId"))
         updateTime: Mapped[int] = mapped_column(
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
@@ -127,7 +127,7 @@ try:
         __tablename__: str = "user_figure_string"
         uuid: Mapped[str] = mapped_column(String(36), primary_key = True,
             default = str(uuid.uuid4()))
-        user_id: Mapped[str] = mapped_column(String(36),
+        user_id: Mapped[str] = mapped_column(String(255),
             ForeignKey("user.bouncerPlayerId"))
         updateTime: Mapped[int] = mapped_column(
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
@@ -138,7 +138,7 @@ try:
         __tablename__: str = "user_name"
         uuid: Mapped[str] = mapped_column(String(36), primary_key = True,
             default = str(uuid.uuid4()))
-        user_id: Mapped[str] = mapped_column(String(36),
+        user_id: Mapped[str] = mapped_column(String(255),
             ForeignKey("user.bouncerPlayerId"))
         updateTime: Mapped[int] = mapped_column(
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
@@ -149,7 +149,7 @@ try:
         __tablename__: str = "user_visibility"
         uuid: Mapped[str] = mapped_column(String(36), primary_key = True,
             default = str(uuid.uuid4()))
-        user_id: Mapped[str] = mapped_column(String(36),
+        user_id: Mapped[str] = mapped_column(String(255),
             ForeignKey("user.bouncerPlayerId"))
         updateTime: Mapped[int] = mapped_column(
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
@@ -160,7 +160,7 @@ try:
         __tablename__: str = "user_level"
         uuid: Mapped[str] = mapped_column(String(36), primary_key = True,
             default = str(uuid.uuid4()))
-        user_id: Mapped[str] = mapped_column(String(36),
+        user_id: Mapped[str] = mapped_column(String(255),
             ForeignKey("user.bouncerPlayerId"))
         updateTime: Mapped[int] = mapped_column(
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
@@ -171,7 +171,7 @@ try:
         __tablename__: str = "user_level_percent"
         uuid: Mapped[str] = mapped_column(String(36), primary_key = True,
             default = str(uuid.uuid4()))
-        user_id: Mapped[str] = mapped_column(String(36),
+        user_id: Mapped[str] = mapped_column(String(255),
             ForeignKey("user.bouncerPlayerId"))
         updateTime: Mapped[int] = mapped_column(
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
@@ -182,7 +182,7 @@ try:
         __tablename__: str = "user_star_gem"
         uuid: Mapped[str] = mapped_column(String(36), primary_key = True,
             default = str(uuid.uuid4()))
-        user_id: Mapped[str] = mapped_column(String(36),
+        user_id: Mapped[str] = mapped_column(String(255),
             ForeignKey("user.bouncerPlayerId"))
         updateTime: Mapped[int] = mapped_column(
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
@@ -193,7 +193,7 @@ try:
         __tablename__: str = "user_experience"
         uuid: Mapped[str] = mapped_column(String(36), primary_key = True,
             default = str(uuid.uuid4()))
-        user_id: Mapped[str] = mapped_column(String(36),
+        user_id: Mapped[str] = mapped_column(String(255),
             ForeignKey("user.bouncerPlayerId"))
         updateTime: Mapped[int] = mapped_column(
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
@@ -205,7 +205,7 @@ try:
         badge_id: Mapped[str] = mapped_column(String(255),
             ForeignKey("badge.code"),
             primary_key = True)
-        user_id: Mapped[str] = mapped_column(String(36),
+        user_id: Mapped[str] = mapped_column(String(255),
             ForeignKey("user.bouncerPlayerId"), unique = False)
         updateTime: Mapped[int] = mapped_column(
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
@@ -240,7 +240,7 @@ try:
         __tablename__: str = "match_player"
         match_id: Mapped[str] = mapped_column(String(36),
             ForeignKey("match.matchId"), primary_key = True)
-        user_id: Mapped[str] = mapped_column(String(36),
+        user_id: Mapped[str] = mapped_column(String(255),
             ForeignKey("user.bouncerPlayerId"))
         team_id: Mapped[int] = mapped_column(String(36),
             ForeignKey("match_team.teamId"))
