@@ -274,9 +274,10 @@ não encontrado""")
     except Exception as e:
         logger.exception(e)
     return MatchPlayer(
+        uuid = str(uuid.uuid4()),
         match_id = match_id,
         user_id = f"{participant['gamePlayerId']}",
-        team_id = int(participant["teamId"]),
+        teamId = int(participant["teamId"]),
         gameScore = int(participant["gameScore"]),
         playerPlacement = int(participant["playerPlacement"]),
         teamPlacement = int(participant["teamPlacement"]),
