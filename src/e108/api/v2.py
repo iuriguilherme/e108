@@ -254,16 +254,22 @@ async def extract_participant(match_id: str, participant: dict,
     lang: str = "br") -> MatchPlayer:
     """Transforma jogador em modelo"""
     try:
-        player_id: dict = await pid2uid(participant["gamePlayerId"])
-        if player_id["status"]:
-            new_player: dict = await user_id(player_id["message"])
-            if new_player["status"]:
-                await update_user(new_player["message"]["name"], lang)
-            else:
-                logger.warning(f"""Usuário {player_id['message']} \
+        try:
+            with Session(engine) as session:
+                session.scalars(select(User).where(
+                    User.bouncerPlayerId == \
+                    participant["gamePlayerId"])).one()
+        except NoResultFound:
+            player_id: dict = await pid2uid(participant["gamePlayerId"])
+            if player_id["status"]:
+                new_player: dict = await user_id(player_id["message"])
+                if new_player["status"]:
+                    await update_user(new_player["message"]["name"], lang)
+                else:
+                    logger.warning(f"""Usuário {player_id['message']} \
 não encontrado""")
-        else:
-            logger.warning(f"""Usuário {participant['gamePlayerId']} \
+            else:
+                logger.warning(f"""Usuário {participant['gamePlayerId']} \
 não encontrado""")
     except Exception as e:
         logger.exception(e)
@@ -297,21 +303,21 @@ async def extract_team(match_id: str, team: dict,
         teamPlacement = int(team["teamPlacement"]),
     )
 
-async def extract_match(match: dict, lang: str = "br") -> Match:
+async def extract_match(new_match: dict, lang: str = "br") -> Match:
     """Transforma partida em modelo"""
     return Match(
-        matchId = str(match["metadata"]["matchId"]),
-        gameCreation = int(match["info"]["gameCreation"]),
-        gameDuration = int(match["info"]["gameDuration"]),
-        gameEnd = int(match["info"]["gameEnd"]),
-        gameMode = str(match["info"]["gameMode"]),
-        mapId = int(match["info"]["mapId"]),
-        ranked = bool(match["info"]["ranked"]),
-        teams = [await extract_team(str(match["metadata"]["matchId"]),
-            team) for team in match["info"]["teams"]],
+        matchId = str(new_match["metadata"]["matchId"]),
+        gameCreation = int(new_match["info"]["gameCreation"]),
+        gameDuration = int(new_match["info"]["gameDuration"]),
+        gameEnd = int(new_match["info"]["gameEnd"]),
+        gameMode = str(new_match["info"]["gameMode"]),
+        mapId = int(new_match["info"]["mapId"]),
+        ranked = bool(new_match["info"]["ranked"]),
+        teams = [await extract_team(str(new_match["metadata"]["matchId"]),
+            team) for team in new_match["info"]["teams"]],
         participants = [await extract_participant(
-            match["metadata"]["matchId"], participant) \
-            for participant in match["info"]["participants"]],
+            new_match["metadata"]["matchId"], participant) \
+            for participant in new_match["info"]["participants"]],
     )
 
 async def update_matches(match_ids: list[str], lang: str = "br") -> None:
@@ -319,15 +325,30 @@ async def update_matches(match_ids: list[str], lang: str = "br") -> None:
     try:
         new_matches: list = []
         for match_id in match_ids:
-            try:
-                with Session(engine) as session:
-                    session.scalars(select(Match).where(
-                        Match.matchId == match_id)).one()
-            except NoResultFound:
-                new_match: dict = await match(match_id)
-                if new_match["status"]:
+            new_match: dict = await match(match_id)
+            if new_match["status"]:
+                try:
+                    with Session(engine) as session:
+                        session.scalars(select(Match).where(
+                            Match.matchId == match_id)).one()
+                        for participant in \
+                            new_match["message"]["info"]["participants"]:
+                            try:
+                                with Session(engine) as session:
+                                    session.scalars(select(MatchPlayer).where(
+                                        MatchPlayer.user_id == \
+                                        participant["gamePlayerId"]).where(
+                                        MatchPlayer.match_id == \
+                                        new_match["message"]["metadata"
+                                        ]["matchId"])).one()
+                            except NoResultFound:
+                                new_matches.append(await extract_participant(
+                                    match_id, participant))
+                except NoResultFound:
                     new_matches.append(await extract_match(
                         new_match["message"]))
+            else:
+                logger.warning(f"Partida {match_id} não encontrada")
         await dbo_insert(engine, new_matches)
     except Exception as e:
         logger.exception(e)
