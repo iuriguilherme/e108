@@ -253,7 +253,7 @@ try:
             ForeignKey("match.matchId"), primary_key = True)
         user_id: Mapped[str] = mapped_column(String(255),
             ForeignKey("user.bouncerPlayerId"), unique = False,
-            nullable = True))
+            nullable = True)
         team_id: Mapped[int] = mapped_column(ForeignKey("match_team.teamId"),
             unique = False, nullable = True)
         # ~ player: Mapped["User"] = relationship(
