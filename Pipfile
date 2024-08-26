@@ -14,6 +14,7 @@ quart = {extras = ["dotenv"], version = "*"}
 requests = "*"
 sqlalchemy = "*"
 uvicorn = "*"
+pymysql = "*"
 
 [dev-packages]
 e108 = {file = ".", editable = true}
