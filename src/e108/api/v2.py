@@ -108,7 +108,8 @@ async def update_user_model(user: User, new_user: dict) -> User:
         user.access_times.append(UserAccessTime(
             uuid = str(uuid.uuid4()),
             user_id = new_user["bouncerPlayerId"],
-            lastAccessTime = new_user["lastAccessTime"]))
+            lastAccessTime = int(datetime.datetime.strptime(
+            user["lastAccessTime"], "%Y-%m-%dT%H:%M:%S.%f%z").timestamp())))
         user.mottos.append(UserMotto(
             uuid = str(uuid.uuid4()),
             user_id = new_user["bouncerPlayerId"],
@@ -172,6 +173,7 @@ adding now""")
                     description = str(badge["description"]),
                 )])
             u.selectedBadges.append(UserBadge(
+                uuid = str(uuid.uuid4()),
                 badge_id = str(badge["code"]),
                 user_id = str(user["bouncerPlayerId"]),
                 badgeIndex = int(badge["badgeIndex"]),
