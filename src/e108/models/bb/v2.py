@@ -35,7 +35,8 @@ try:
         items: Mapped[list["LeaderboardItem"]] = relationship()
         updateTime: Mapped[int] = mapped_column(
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
-        description: Mapped[str] = mapped_column()
+        description: Mapped[str] = mapped_column(String(255),
+            default = "placar")
     
     class LeaderboardItem(Base):
         """Item do placar"""
@@ -44,21 +45,21 @@ try:
             default = str(uuid.uuid4()))
         leaderboard_id: Mapped[str] = mapped_column(String(36), 
             ForeignKey("leaderboard.uuid"), primary_key = True, unique = False)
-        # ~ user_id: Mapped[str] = mapped_column(
+        name: Mapped[str] = mapped_column(String(255), primary_key = True)
+        # ~ user_id: Mapped[str] = mapped_column(String(36),
             # ~ ForeignKey("user.bouncerPlayerId"), primary_key = True,
             # ~ unique = False)
         # ~ scores: Mapped[list["LeaderboardScore"]] = relationship()
         updateTime: Mapped[int] = mapped_column(
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
-        name: Mapped[str] = mapped_column(primary_key = True)
-        score: Mapped[str] = mapped_column()
+        score: Mapped[int] = mapped_column(default = 0)
     
     # ~ class LeaderboardScore(Base):
         # ~ """Pontuação"""
         # ~ __tablename__: str = "leaderboard_score"
         # ~ uuid: Mapped[str] = mapped_column(String(36), primary_key = True,
             # ~ default = str(uuid.uuid4()))
-        # ~ leaderboard_item_id: Mapped[str] = mapped_column(
+        # ~ leaderboard_item_id: Mapped[str] = mapped_column(String(36),
             # ~ ForeignKey("leaderboard_item.uuid"), primary_key = True,
             # ~ unique = False)
         # ~ updateTime: Mapped[int] = mapped_column(
@@ -130,7 +131,7 @@ try:
             ForeignKey("user.bouncerPlayerId"))
         updateTime: Mapped[int] = mapped_column(
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
-        figureString: Mapped[str] = mapped_column(default = "")
+        figureString: Mapped[str] = mapped_column(String(255), default = "")
     
     class UserName(Base):
         """Nome"""
