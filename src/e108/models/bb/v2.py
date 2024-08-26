@@ -8,6 +8,7 @@ logger: logging.Logger = logging.getLogger(__name__)
 try:
     import datetime
     from sqlalchemy import (
+        BigInteger,
         ForeignKey,
         String,
     )
@@ -32,7 +33,7 @@ try:
         __tablename__: str = "leaderboard"
         uuid: Mapped[str] = mapped_column(String(36), primary_key = True)
         items: Mapped[list["LeaderboardItem"]] = relationship()
-        updateTime: Mapped[int] = mapped_column(
+        updateTime: Mapped[int] = mapped_column(BigInteger(),
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
         description: Mapped[str] = mapped_column(String(255),
             default = "placar")
@@ -48,7 +49,7 @@ try:
             # ~ ForeignKey("user.bouncerPlayerId"),
             # ~ unique = False)
         # ~ scores: Mapped[list["LeaderboardScore"]] = relationship()
-        updateTime: Mapped[int] = mapped_column(
+        updateTime: Mapped[int] = mapped_column(BigInteger(),
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
         score: Mapped[int] = mapped_column(default = 0)
     
@@ -60,7 +61,7 @@ try:
         # ~ leaderboard_item_id: Mapped[str] = mapped_column(String(36),
             # ~ ForeignKey("leaderboard_item.uuid"),
             # ~ unique = False)
-        # ~ updateTime: Mapped[int] = mapped_column(
+        # ~ updateTime: Mapped[int] = mapped_column(BigInteger(),
             # ~ default = int(datetime.datetime.now(datetime.UTC).timestamp()))
         # ~ score: Mapped[int] = mapped_column(default = 0)
     
@@ -84,7 +85,7 @@ try:
         memberSince: Mapped[int] = mapped_column(
             default = int(datetime.datetime.fromtimestamp(
             int(1e6)).timestamp()))
-        updateTime: Mapped[int] = mapped_column(
+        updateTime: Mapped[int] = mapped_column(BigInteger(),
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
         name: Mapped[str] = mapped_column(String(255), default = "Ninguem")
         figureString: Mapped[str] = mapped_column(String(255), default = "")
@@ -94,7 +95,7 @@ try:
         currentLevelCompletePercent: Mapped[int] = mapped_column(default = 0)
         starGemCount: Mapped[int] = mapped_column(default = 0)
         totalExperience: Mapped[int] = mapped_column(default = 0)
-        lastAccessTime: Mapped[int] = mapped_column(
+        lastAccessTime: Mapped[int] = mapped_column(BigInteger(),
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
     
     class UserMotto(Base):
@@ -104,7 +105,7 @@ try:
         user_id: Mapped[str] = mapped_column(String(255), 
             ForeignKey("user.bouncerPlayerId"), unique = False,
             nullable = True)
-        updateTime: Mapped[int] = mapped_column(
+        updateTime: Mapped[int] = mapped_column(BigInteger(),
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
         motto: Mapped[str] = mapped_column(String(255), default = "")
     
@@ -115,9 +116,9 @@ try:
         user_id: Mapped[str] = mapped_column(String(255),
             ForeignKey("user.bouncerPlayerId"), unique = False,
             nullable = True)
-        updateTime: Mapped[int] = mapped_column(
+        updateTime: Mapped[int] = mapped_column(BigInteger(),
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
-        lastAccessTime: Mapped[int] = mapped_column(
+        lastAccessTime: Mapped[int] = mapped_column(BigInteger(),
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
     
     class UserFigureString(Base):
@@ -127,7 +128,7 @@ try:
         user_id: Mapped[str] = mapped_column(String(255),
             ForeignKey("user.bouncerPlayerId"), unique = False,
             nullable = True)
-        updateTime: Mapped[int] = mapped_column(
+        updateTime: Mapped[int] = mapped_column(BigInteger(),
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
         figureString: Mapped[str] = mapped_column(String(255), default = "")
     
@@ -138,7 +139,7 @@ try:
         user_id: Mapped[str] = mapped_column(String(255),
             ForeignKey("user.bouncerPlayerId"), unique = False,
             nullable = True)
-        updateTime: Mapped[int] = mapped_column(
+        updateTime: Mapped[int] = mapped_column(BigInteger(),
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
         name: Mapped[str] = mapped_column(String(255), default = "Ninguem")
     
@@ -149,7 +150,7 @@ try:
         user_id: Mapped[str] = mapped_column(String(255),
             ForeignKey("user.bouncerPlayerId"), unique = False,
             nullable = True)
-        updateTime: Mapped[int] = mapped_column(
+        updateTime: Mapped[int] = mapped_column(BigInteger(),
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
         profileVisible: Mapped[bool] = mapped_column(default = False)
     
@@ -160,7 +161,7 @@ try:
         user_id: Mapped[str] = mapped_column(String(255),
             ForeignKey("user.bouncerPlayerId"), unique = False,
             nullable = True)
-        updateTime: Mapped[int] = mapped_column(
+        updateTime: Mapped[int] = mapped_column(BigInteger(),
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
         currentLevel: Mapped[int] = mapped_column(default = 0)
     
@@ -171,7 +172,7 @@ try:
         user_id: Mapped[str] = mapped_column(String(255),
             ForeignKey("user.bouncerPlayerId"), unique = False,
             nullable = True)
-        updateTime: Mapped[int] = mapped_column(
+        updateTime: Mapped[int] = mapped_column(BigInteger(),
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
         currentLevelCompletePercent: Mapped[int] = mapped_column(default = 0)
     
@@ -182,7 +183,7 @@ try:
         user_id: Mapped[str] = mapped_column(String(255),
             ForeignKey("user.bouncerPlayerId"), unique = False,
             nullable = True)
-        updateTime: Mapped[int] = mapped_column(
+        updateTime: Mapped[int] = mapped_column(BigInteger(),
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
         starGemCount: Mapped[int] = mapped_column(default = 0)
     
@@ -193,7 +194,7 @@ try:
         user_id: Mapped[str] = mapped_column(String(255),
             ForeignKey("user.bouncerPlayerId"), unique = False,
             nullable = True)
-        updateTime: Mapped[int] = mapped_column(
+        updateTime: Mapped[int] = mapped_column(BigInteger(),
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
         totalExperience: Mapped[int] = mapped_column(default = 0)
     
@@ -207,7 +208,7 @@ try:
         user_id: Mapped[str] = mapped_column(String(255),
             ForeignKey("user.bouncerPlayerId"), unique = False,
             nullable = True)
-        updateTime: Mapped[int] = mapped_column(
+        updateTime: Mapped[int] = mapped_column(BigInteger(),
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
         badgeIndex: Mapped[int] = mapped_column(default = 0)
     
@@ -215,7 +216,7 @@ try:
         """Emblema"""
         __tablename__: str = "badge"
         code: Mapped[str] = mapped_column(String(255), primary_key = True)
-        updateTime: Mapped[int] = mapped_column(
+        updateTime: Mapped[int] = mapped_column(BigInteger(),
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
         name: Mapped[str] = mapped_column(String(255), default = "")
         description: Mapped[str] = mapped_column(String(255), default = "")
@@ -229,7 +230,7 @@ try:
             ForeignKey("match.matchId"), unique = False,
             nullable = True)
         # ~ players: Mapped[list["MatchPlayer"]] = relationship()
-        updateTime: Mapped[int] = mapped_column(
+        updateTime: Mapped[int] = mapped_column(BigInteger(),
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
         win: Mapped[bool] = mapped_column(default = False)
         teamScore: Mapped[int] = mapped_column(default = 0)
@@ -249,7 +250,7 @@ try:
             # ~ unique = False, nullable = True)
         # ~ player: Mapped["User"] = relationship(
             # ~ back_populates = "matches")
-        updateTime: Mapped[int] = mapped_column(
+        updateTime: Mapped[int] = mapped_column(BigInteger(),
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
         gameScore: Mapped[int] = mapped_column(default = 0)
         teamId: Mapped[int] = mapped_column(unique = False)
@@ -268,24 +269,28 @@ try:
         # ~ """Battle Ball Match"""
         # ~ __tablename__: str = "match_map"
         # ~ mapId: Mapped[int] = mapped_column(primary_key = True)
-        # ~ updateTime: Mapped[int] = mapped_column(
+        # ~ updateTime: Mapped[int] = mapped_column(BigInteger(),
             # ~ default = int(datetime.datetime.now(datetime.UTC).timestamp()))
         # ~ description: Mapped[int] = mapped_column()
     
     class Match(Base):
         """Battle Ball Match"""
         __tablename__: str = "match"
-        matchId: Mapped[str] = mapped_column(String(255), primary_key = True)
+        matchId: Mapped[str] = mapped_column(String(255),
+            primary_key = True)
         teams: Mapped[list["MatchTeam"]] = relationship()
         participants: Mapped[list["MatchPlayer"]] = relationship()
         ## TODO: Criar modelo para mapa
         mapId: Mapped[int] = mapped_column(default = 0)
-        updateTime: Mapped[int] = mapped_column(
+        updateTime: Mapped[int] = mapped_column(BigInteger(),
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
-        gameCreation: Mapped[int] = mapped_column(default = int(1e6))
+        gameCreation: Mapped[int] = mapped_column(BigInteger(),
+            default = int(1e6))
         gameDuration: Mapped[int] = mapped_column(default = 0)
-        gameEnd: Mapped[int] = mapped_column(default = int(1e6))
-        gameMode: Mapped[str] = mapped_column(String(255), default = "BOUNCER")
+        gameEnd: Mapped[int] = mapped_column(BigInteger(),
+            default = int(1e6))
+        gameMode: Mapped[str] = mapped_column(String(255),
+            default = "BOUNCER")
         ranked: Mapped[bool] = mapped_column(default = False)
     
 except Exception as e:

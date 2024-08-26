@@ -109,7 +109,8 @@ async def update_user_model(user: User, new_user: dict) -> User:
             uuid = str(uuid.uuid4()),
             user_id = new_user["bouncerPlayerId"],
             lastAccessTime = int(datetime.datetime.strptime(
-            user["lastAccessTime"], "%Y-%m-%dT%H:%M:%S.%f%z").timestamp())))
+            new_user["lastAccessTime"],
+            "%Y-%m-%dT%H:%M:%S.%f%z").timestamp())))
         user.mottos.append(UserMotto(
             uuid = str(uuid.uuid4()),
             user_id = new_user["bouncerPlayerId"],
