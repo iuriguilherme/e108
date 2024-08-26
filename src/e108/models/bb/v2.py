@@ -44,10 +44,10 @@ try:
         uuid: Mapped[str] = mapped_column(String(36), primary_key = True,
             default = str(uuid.uuid4()))
         leaderboard_id: Mapped[str] = mapped_column(String(36), 
-            ForeignKey("leaderboard.uuid"), primary_key = True, unique = False)
-        name: Mapped[str] = mapped_column(String(255), primary_key = True)
+            ForeignKey("leaderboard.uuid"), unique = False)
+        name: Mapped[str] = mapped_column(String(255))
         # ~ user_id: Mapped[str] = mapped_column(String(36),
-            # ~ ForeignKey("user.bouncerPlayerId"), primary_key = True,
+            # ~ ForeignKey("user.bouncerPlayerId"),
             # ~ unique = False)
         # ~ scores: Mapped[list["LeaderboardScore"]] = relationship()
         updateTime: Mapped[int] = mapped_column(
@@ -60,7 +60,7 @@ try:
         # ~ uuid: Mapped[str] = mapped_column(String(36), primary_key = True,
             # ~ default = str(uuid.uuid4()))
         # ~ leaderboard_item_id: Mapped[str] = mapped_column(String(36),
-            # ~ ForeignKey("leaderboard_item.uuid"), primary_key = True,
+            # ~ ForeignKey("leaderboard_item.uuid"),
             # ~ unique = False)
         # ~ updateTime: Mapped[int] = mapped_column(
             # ~ default = int(datetime.datetime.now(datetime.UTC).timestamp()))
@@ -69,7 +69,6 @@ try:
     class User(Base):
         """User a.k.a. Habbo"""
         __tablename__: str = "user"
-        uniqueId: Mapped[str] = mapped_column(String(255), primary_key = True)
         bouncerPlayerId: Mapped[str] = mapped_column(String(255),
             primary_key = True)
         profile_visibilities: Mapped[list["UserVisibility"]] = relationship()
@@ -83,6 +82,7 @@ try:
         names: Mapped[list["UserName"]] = relationship()
         selectedBadges: Mapped[list["UserBadge"]] = relationship()
         # ~ matches: Mapped[list["Match"]] = relationship()
+        uniqueId: Mapped[str] = mapped_column(String(255), unique = True)
         memberSince: Mapped[int] = mapped_column(
             default = int(datetime.datetime.fromtimestamp(
             int(1e6)).timestamp()))
@@ -206,8 +206,7 @@ try:
             ForeignKey("badge.code"),
             primary_key = True)
         user_id: Mapped[str] = mapped_column(String(36),
-            ForeignKey("user.bouncerPlayerId"), primary_key = True,
-            unique = False)
+            ForeignKey("user.bouncerPlayerId"), unique = False)
         updateTime: Mapped[int] = mapped_column(
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
         badgeIndex: Mapped[int] = mapped_column(default = 0)
@@ -226,10 +225,9 @@ try:
         __tablename__: str = "match_team"
         uuid: Mapped[str] = mapped_column(String(36), primary_key = True,
             default = str(uuid.uuid4()))
-        teamId: Mapped[int] = mapped_column(String(36), primary_key = True,
-            unique = False)
+        teamId: Mapped[int] = mapped_column(String(36), unique = False)
         match_id: Mapped[str] = mapped_column(String(36),
-            ForeignKey("match.matchId"), primary_key = True, unique = False)
+            ForeignKey("match.matchId"), unique = False)
         # ~ players: Mapped[list["MatchPlayer"]] = relationship()
         updateTime: Mapped[int] = mapped_column(
             default = int(datetime.datetime.now(datetime.UTC).timestamp()))
@@ -243,9 +241,9 @@ try:
         match_id: Mapped[str] = mapped_column(String(36),
             ForeignKey("match.matchId"), primary_key = True)
         user_id: Mapped[str] = mapped_column(String(36),
-            ForeignKey("user.bouncerPlayerId"), primary_key = True)
+            ForeignKey("user.bouncerPlayerId"))
         team_id: Mapped[int] = mapped_column(String(36),
-            ForeignKey("match_team.teamId"), primary_key = True)
+            ForeignKey("match_team.teamId"))
         # ~ player: Mapped["User"] = relationship(
             # ~ back_populates = "matches")
         updateTime: Mapped[int] = mapped_column(
