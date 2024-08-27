@@ -186,8 +186,8 @@ async def extract_user(user: dict, lang: str = "br") -> User:
                         session.scalars(select(Badge).where(
                             Badge.code == badge["code"])).one()
                 except NoResultFound:
-                    logger.warning(f"""Badge {badge['code']} was not in database, \
-adding now""")
+                    logger.warning(f"""Badge {badge['code']} was not in \
+database, adding now""")
                     await dbo_insert(engine, [Badge(
                         code = str(badge["code"]),
                         name = str(badge["name"]),
@@ -279,6 +279,7 @@ async def atualizar_usuario(
     r_hours: int = 0,
     r_minutes: int = 0,
     lang: str = "br",
+    jobstore: str = "default",
 ) -> dict:
     """Atualiza usuário no banco de dados"""
     try:
@@ -297,6 +298,7 @@ async def atualizar_usuario(
             j_date = {"minutes": delay},
             repetir = bool(repetir),
             r_kwargs = r_kwargs,
+            jobstore = jobstore,
         )
         return {
             "status": True,
@@ -476,6 +478,7 @@ async def atualizar_partidas(
     r_hours: int = 0,
     r_minutes: int = 0,
     lang: str = "br",
+    jobstore: str = "default",
 ) -> dict:
     """Atualiza partidas no banco de dados"""   
     try:
@@ -503,6 +506,7 @@ async def atualizar_partidas(
             j_date = {"minutes": delay},
             repetir = bool(repetir),
             r_kwargs = r_kwargs,
+            jobstore = jobstore,
         )
         return {
             "status": True,
@@ -592,6 +596,7 @@ async def atualizar_placar_usuario(
     r_hours: int = 0,
     r_minutes: int = 0,
     lang: str = "br",
+    jobstore: str = "default",
 ) -> dict:
     """Atualiza partidas no banco de dados"""   
     try:
@@ -614,6 +619,7 @@ async def atualizar_placar_usuario(
             j_date = {"minutes": delay},
             repetir = bool(repetir),
             r_kwargs = r_kwargs,
+            jobstore = jobstore,
         )
         return {
             "status": True,

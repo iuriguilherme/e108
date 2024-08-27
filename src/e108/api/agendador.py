@@ -39,6 +39,12 @@ def get_scheduler(*args, **kwargs) -> object:
         return AsyncIOScheduler(
             jobstores = {
                 'default': get_jobstore(*args, **kwargs),
+                'alchemy': SQLAlchemyJobStore(
+                    *args,
+                    tablename = os.getenv("APS_TABLE", "job_queue"),
+                     **kwargs,
+                 ),
+                 'memory': MemoryJobStore(),
             },
             executors = {
                 'default': AsyncIOExecutor(),
@@ -73,8 +79,8 @@ async def agendar(
             kwargs = j_kwargs,
             id = job_id,
             name = job_id,
-            # ~ jobstore = kwargs.get("jobstore", "default"),
-            # ~ executor = kwargs.get("executor", "default"),
+            jobstore = kwargs.get("jobstore", "default"),
+            executor = kwargs.get("executor", "default"),
             replace_existing = True,
             run_date = (datetime.datetime.now() + \
                 datetime.timedelta(**j_date)),
@@ -84,7 +90,8 @@ async def agendar(
                 scheduler.reschedule_job(
                     job_id,
                     'interval',
-                    # ~ jobstore = kwargs.get("jobstore", "default"),
+                    jobstore = kwargs.get("jobstore", "default"),
+                    executor = kwargs.get("executor", "default"),
                     **r_kwargs,
                 )
             except Exception as e:
