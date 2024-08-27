@@ -4,4 +4,4 @@ v0.0.3 -- Banco de dados
 v0.0.4 -- Remodelagem dos dados
 v0.0.5 -- Primeira versão funcionando de fato
 v0.1.0 -- Otimizações para persistência
-v0.2.0 -- Fila de agendamento para requisições
+v0.2.1 -- Fila de agendamento para requisições
