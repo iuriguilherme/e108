@@ -54,13 +54,13 @@ agendador padrão vai ser usado na memória.""")
 async def agendar(
     callback: object,
     nomes: list,
+    scheduler: object,
     j_args: list = [],
     j_kwargs: dict = {},
     r_kwargs: dict = {},
     repetir: bool = False,
     j_date: dict = {"minutes": 1},
     r_date: dict = {"minutes": 15},
-    scheduler: object = get_scheduler(),
     **kwargs,
 ) -> None:
     """Cria tarefa"""
@@ -73,17 +73,18 @@ async def agendar(
             kwargs = j_kwargs,
             id = job_id,
             name = job_id,
-            jobstore = kwargs.get("jobstore", "default"),
-            executor = kwargs.get("executor", "default"),
+            # ~ jobstore = kwargs.get("jobstore", "default"),
+            # ~ executor = kwargs.get("executor", "default"),
             replace_existing = True,
-            run_date = (datetime.datetime.now() + datetime.timedelta(**j_date)),
+            run_date = (datetime.datetime.now() + \
+                datetime.timedelta(**j_date)),
         )
         if repetir:
             try:
                 scheduler.reschedule_job(
                     job_id,
                     'interval',
-                    jobstore = kwargs.get("jobstore", "default"),
+                    # ~ jobstore = kwargs.get("jobstore", "default"),
                     **r_kwargs,
                 )
             except Exception as e:

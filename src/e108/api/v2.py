@@ -292,10 +292,10 @@ async def atualizar_usuario(
         await agendar(
             update_user,
             ["usuario", nome],
+            agendador,
             j_kwargs = {"nome": nome, "lang": lang},
             j_date = {"minutes": delay},
-            repetir = repetir,
-            scheduler = agendador,
+            repetir = bool(repetir),
             r_kwargs = r_kwargs,
         )
         return {
@@ -328,7 +328,8 @@ async def extract_participant(match_id: str, participant: dict,
             if player_id["status"]:
                 new_player: dict = await user_id(player_id["message"])
                 if new_player["status"]:
-                    await update_user(new_player["message"]["name"], lang)
+                    await update_user({"name": new_player["message"]["name"],
+                        "lang": lang})
                 else:
                     logger.warning(f"""Usuário {player_id['message']} \
 não encontrado""")
@@ -421,7 +422,7 @@ async def update_matches(match_ids: list[str], lang: str = "br") -> None:
 async def update_user_matches(*args, **kwargs) -> None:
     """Atualiza banco de dados com partidas de usuário"""
     try:
-        await update_user(kwargs["nome"], kwargs["lang"])
+        await update_user(**kwargs)
         new_matches: dict = dict()
         all_matches: set = set()
         days_ago: int = 1
@@ -432,10 +433,11 @@ async def update_user_matches(*args, **kwargs) -> None:
             last_start: float = (agora - \
                 datetime.timedelta(days = kwargs["last_day"])).timestamp()
             last_end: float = (agora - \
-                datetime.timedelta(days = (kwargs["last_day"] - 1))).timestamp()
+                datetime.timedelta(days = (kwargs["last_day"] - 1))
+                    ).timestamp()
             while (last_start <= kwargs["start_time"]) and \
                 (last_end <= kwargs["end_time"]):
-                while kwargs["offset"] <= last_offset:
+                while kwargs["offset"] <= kwargs["last_offset"]:
                     new_matches = await matches(user_id, **kwargs)
                     logger.info(f"""matches found: \
 {len(new_matches['message'])}, all matches: {len(all_matches)}, args: \
@@ -487,6 +489,7 @@ async def atualizar_partidas(
         await agendar(
             update_user_matches,
             ["partidas", nome],
+            agendador,
             j_kwargs = {
                 "nome": nome,
                 "offset": offset,
@@ -498,8 +501,7 @@ async def atualizar_partidas(
                 "lang": lang,
             },
             j_date = {"minutes": delay},
-            repetir = repetir,
-            scheduler = agendador,
+            repetir = bool(repetir),
             r_kwargs = r_kwargs,
         )
         return {
@@ -603,14 +605,14 @@ async def atualizar_placar_usuario(
         await agendar(
             update_leaderboard_user,
             ["placar", placar, nome],
+            agendador,
             j_kwargs = {
                 "nome": nome,
                 "placar": placar,
                 "lang": lang,
             },
             j_date = {"minutes": delay},
-            repetir = repetir,
-            scheduler = agendador,
+            repetir = bool(repetir),
             r_kwargs = r_kwargs,
         )
         return {
