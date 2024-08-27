@@ -438,14 +438,14 @@ async def atualizar_placar(placar: str, nome: str, lang: str = "br") -> dict:
             try:
                 placar_object: Leaderboard = session.scalars(placar_stmt).one()
             except NoResultFound:
-                placar_object: Leaderboard = Leaderboard(description = placar)
+                placar_object: Leaderboard = Leaderboard(
+                    uuid = str(uuid.uuid4()), description = placar)
                 session.add(placar_object)
             user_stmt: object = select(User).where(User.name == nome)
             try:
                 ## FIXME: não tem razão pra isso não funcionar
                 user_id: str = session.scalars(user_stmt).one().bouncerPlayerId
-            except NoResultFound as e:
-                logger.exception(e)
+            except NoResultFound:
                 user_id: str = (await name2pid(nome))["message"]
             scores_stmt: object = select(Match).where(Match.ranked == True)
             scores: object = session.scalars(scores_stmt).all()
@@ -464,6 +464,7 @@ async def atualizar_placar(placar: str, nome: str, lang: str = "br") -> dict:
                     score_stmt).one()
             except NoResultFound:
                 score_object: LeaderboardItem = LeaderboardItem(
+                    uuid = str(uuid.uuid4()),
                     name = nome,
                     leaderboard_id = placar_object.uuid,
                     # ~ user_id = user_id,
@@ -506,7 +507,8 @@ async def get_placar(placar: str, lang: str = "br") -> dict:
             try:
                 placar_object: Leaderboard = session.scalars(placar_stmt).one()
             except NoResultFound:
-                placar_object: Leaderboard = Leaderboard(description = placar)
+                placar_object: Leaderboard = Leaderboard(
+                uuid = str(uuid.uuid4()), description = placar)
                 session.add(placar_object)
                 session.commit()
             rankings: list[tuple] = sorted([(r.name, r.score) for r in \
