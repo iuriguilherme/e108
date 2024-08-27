@@ -280,6 +280,7 @@ async def atualizar_usuario(
     r_minutes: int = 0,
     lang: str = "br",
     jobstore: str = "default",
+    bypass: int = 0,
 ) -> dict:
     """Atualiza usuário no banco de dados"""
     try:
@@ -290,21 +291,29 @@ async def atualizar_usuario(
             r_kwargs["hours"] = r_hours
         elif r_minutes > 0:
             r_kwargs["minutes"] = r_minutes
-        await agendar(
-            update_user,
-            ["usuario", nome],
-            agendador,
-            j_kwargs = {"nome": nome, "lang": lang},
-            j_date = {"minutes": delay},
-            repetir = bool(repetir),
-            r_kwargs = r_kwargs,
-            jobstore = jobstore,
-        )
-        return {
-            "status": True,
-            "message": f"""Usuária(o) {nome} agendada(o) para ser adicionada(o) \
-ao banco de dados""",
-        }
+        if not bool(bypass):
+            await agendar(
+                update_user,
+                ["usuario", nome],
+                agendador,
+                j_kwargs = {"nome": nome, "lang": lang},
+                j_date = {"minutes": delay},
+                repetir = bool(repetir),
+                r_kwargs = r_kwargs,
+                jobstore = jobstore,
+            )
+            return {
+                "status": True,
+                "message": f"""Usuária(o) {nome} agendada(o) para ser \
+adicionada(o) ao banco de dados""",
+            }
+        else:
+            await update_user(**{"nome": nome, "lang": lang})
+            return {
+                "status": True,
+                "message": f"""Usuária(o) {nome} adicionada(o) ao banco de \
+dados""",
+            }
     except Exception as e:
         logger.exception(e)
         return {
@@ -479,6 +488,7 @@ async def atualizar_partidas(
     r_minutes: int = 0,
     lang: str = "br",
     jobstore: str = "default",
+    bypass: int = 0,
 ) -> dict:
     """Atualiza partidas no banco de dados"""   
     try:
@@ -489,11 +499,33 @@ async def atualizar_partidas(
             r_kwargs["hours"] = r_hours
         elif r_minutes > 0:
             r_kwargs["minutes"] = r_minutes
-        await agendar(
-            update_user_matches,
-            ["partidas", nome],
-            agendador,
-            j_kwargs = {
+        if not bool(bypass):
+            await agendar(
+                update_user_matches,
+                ["partidas", nome],
+                agendador,
+                j_kwargs = {
+                    "nome": nome,
+                    "offset": offset,
+                    "limit": limit,
+                    "start_time": start_time,
+                    "end_time": end_time,
+                    "last_offset": last_offset,
+                    "last_day": last_day,
+                    "lang": lang,
+                },
+                j_date = {"minutes": delay},
+                repetir = bool(repetir),
+                r_kwargs = r_kwargs,
+                jobstore = jobstore,
+            )
+            return {
+                "status": True,
+                "message": f"""Partidas da(o) usuária(o) {nome} agendadas \
+para serem adicionadas ao banco de dados""",
+            }
+        else:
+            await update_user_matches(**{
                 "nome": nome,
                 "offset": offset,
                 "limit": limit,
@@ -502,17 +534,12 @@ async def atualizar_partidas(
                 "last_offset": last_offset,
                 "last_day": last_day,
                 "lang": lang,
-            },
-            j_date = {"minutes": delay},
-            repetir = bool(repetir),
-            r_kwargs = r_kwargs,
-            jobstore = jobstore,
-        )
-        return {
-            "status": True,
-            "message": f"""Partidas da(o) usuária(o) {nome} \
-agendadas para serem adicionadas ao banco de dados""",
-        }
+            })
+            return {
+                "status": True,
+                "message": f"""Partidas da(o) usuária(o) {nome} adicionadas \
+ao banco de dados""",
+            }
     except Exception as e:
         logger.exception(e)
         return {
@@ -597,6 +624,7 @@ async def atualizar_placar_usuario(
     r_minutes: int = 0,
     lang: str = "br",
     jobstore: str = "default",
+    bypass: int = 0,
 ) -> dict:
     """Atualiza partidas no banco de dados"""   
     try:
@@ -607,25 +635,37 @@ async def atualizar_placar_usuario(
             r_kwargs["hours"] = r_hours
         elif r_minutes > 0:
             r_kwargs["minutes"] = r_minutes
-        await agendar(
-            update_leaderboard_user,
-            ["placar", placar, nome],
-            agendador,
-            j_kwargs = {
+        if not bool(bypass):
+            await agendar(
+                update_leaderboard_user,
+                ["placar", placar, nome],
+                agendador,
+                j_kwargs = {
+                    "nome": nome,
+                    "placar": placar,
+                    "lang": lang,
+                },
+                j_date = {"minutes": delay},
+                repetir = bool(repetir),
+                r_kwargs = r_kwargs,
+                jobstore = jobstore,
+            )
+            return {
+                "status": True,
+                "message": f"""Pontos de {nome} no placar {placar} agendados \
+para serem adicionadas ao banco de dados""",
+            }
+        else:
+            await update_leaderboard_user(**{
                 "nome": nome,
                 "placar": placar,
                 "lang": lang,
-            },
-            j_date = {"minutes": delay},
-            repetir = bool(repetir),
-            r_kwargs = r_kwargs,
-            jobstore = jobstore,
-        )
-        return {
-            "status": True,
-            "message": f"""Pontos de {nome} no placar {placar} \
-agendados para serem adicionadas ao banco de dados""",
-        }
+            })
+            return {
+                "status": True,
+                "message": f"""Pontos de {nome} no placar {placar} \
+adicionadas ao banco de dados""",
+            }
     except Exception as e:
         logger.exception(e)
         return {
