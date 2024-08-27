@@ -15,6 +15,7 @@ requests = "*"
 sqlalchemy = "*"
 uvicorn = "*"
 pymysql = "*"
+apscheduler = "*"
 
 [dev-packages]
 e108 = {file = ".", editable = true}

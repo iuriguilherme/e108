@@ -16,6 +16,7 @@ try:
     )
     # ~ import json
     import os
+    from pathlib import Path
     from quart import Quart
     from sqlalchemy import (
         create_engine,
@@ -75,13 +76,29 @@ try:
         UserStarGem,
         UserVisibility,
     )
+    from .agendador import (
+        get_scheduler,
+        agendar,
+    )
 except Exception as e:
     logger.exception(e)
     sys.exit("Erro fatal, stacktrace acima")
 
-engine: object = create_engine(os.getenv("DB_URL_2",
-    default = "sqlite+pysqlite:///:memory:"), echo = True)
-Base.metadata.create_all(engine)
+try:
+    engine: object = create_engine(os.getenv("DB_URL_2",
+        default = "sqlite+pysqlite:///:memory:"), echo = True)
+    Base.metadata.create_all(engine)
+    agendador: object = get_scheduler(engine = engine)
+    agendador.start()
+except Exception as e:
+    logger.exception(e)
+    sys.exit("Erro fatal, stacktrace acima")
+
+try:
+    Path("instance").mkdir(parents = True, exist_ok = True)
+except Exception as e:
+    logger.exception(e)
+    logger.warning("instance não foi criada, verifique permissões de diretório")
 
 dois: APIRouter = APIRouter()
 
@@ -142,46 +159,52 @@ async def update_user_model(user: User, new_user: dict) -> User:
 
 async def extract_user(user: dict, lang: str = "br") -> User:
     """Transforma usuário em modelo"""
-    u: User = User(
-        uniqueId = str(user["uniqueId"]),
-        bouncerPlayerId = str(user["bouncerPlayerId"]),
-        name = str(user["name"]),
-        figureString = str(user["figureString"]),
-        lastAccessTime = int(datetime.datetime.strptime(
-            user["lastAccessTime"], "%Y-%m-%dT%H:%M:%S.%f%z").timestamp()),
-        memberSince = int(datetime.datetime.strptime(
-            user["memberSince"], "%Y-%m-%dT%H:%M:%S.%f%z").timestamp()),
-        motto = str(user["motto"]),
-        profileVisible = bool(user["profileVisible"]),
-        currentLevel = int(user["currentLevel"]),
-        currentLevelCompletePercent = int(user["currentLevelCompletePercent"]),
-        starGemCount = int(user["starGemCount"]),
-        totalExperience = int(user["totalExperience"]),
-    )
-    u = await update_user_model(u, user)
-    for badge in user["selectedBadges"]:
-        try:
+    try:
+        u: User = User(
+            uniqueId = str(user["uniqueId"]),
+            bouncerPlayerId = str(user["bouncerPlayerId"]),
+            name = str(user["name"]),
+            figureString = str(user["figureString"]),
+            lastAccessTime = int(datetime.datetime.strptime(
+                user.get("lastAccessTime", "1970-01-01T00:00:00.000+0000"),
+                "%Y-%m-%dT%H:%M:%S.%f%z").timestamp()),
+            memberSince = int(datetime.datetime.strptime(
+                user["memberSince"], "%Y-%m-%dT%H:%M:%S.%f%z").timestamp()),
+            motto = str(user["motto"]),
+            profileVisible = bool(user["profileVisible"]),
+            currentLevel = int(user.get("currentLevel", 0)),
+            currentLevelCompletePercent = int(user.get(
+                "currentLevelCompletePercent", 0)),
+            starGemCount = int(user.get("starGemCount", 0)),
+            totalExperience = int(user.get("totalExperience", 0)),
+        )
+        u = await update_user_model(u, user)
+        for badge in user.get("selectedBadges", []):
             try:
-                with Session(engine) as session:
-                    session.scalars(select(Badge).where(
-                        Badge.code == badge["code"])).one()
-            except NoResultFound:
-                logger.warning(f"""Badge {badge['code']} was not in database, \
+                try:
+                    with Session(engine) as session:
+                        session.scalars(select(Badge).where(
+                            Badge.code == badge["code"])).one()
+                except NoResultFound:
+                    logger.warning(f"""Badge {badge['code']} was not in database, \
 adding now""")
-                await dbo_insert(engine, [Badge(
-                    code = str(badge["code"]),
-                    name = str(badge["name"]),
-                    description = str(badge["description"]),
-                )])
-            u.selectedBadges.append(UserBadge(
-                uuid = str(uuid.uuid4()),
-                badge_id = str(badge["code"]),
-                user_id = str(user["bouncerPlayerId"]),
-                badgeIndex = int(badge["badgeIndex"]),
-            ))
-        except Exception as e:
-            logger.exception(e)
-    return u
+                    await dbo_insert(engine, [Badge(
+                        code = str(badge["code"]),
+                        name = str(badge["name"]),
+                        description = str(badge["description"]),
+                    )])
+                u.selectedBadges.append(UserBadge(
+                    uuid = str(uuid.uuid4()),
+                    badge_id = str(badge["code"]),
+                    user_id = str(user["bouncerPlayerId"]),
+                    badgeIndex = int(badge["badgeIndex"]),
+                ))
+            except Exception as e:
+                logger.exception(e)
+        return u
+    except Exception as e:
+        logger.exception(e)
+        return None
 
 @dois.get("/atualizar/usuario/{nome}")
 async def update_user(nome: str, lang: str = "br") -> dict:
@@ -235,12 +258,20 @@ async def update_user(nome: str, lang: str = "br") -> dict:
                         # ~ datetime.UTC).timestamp())
                     # ~ session.commit()
             except NoResultFound:
-                await dbo_insert(engine, [
-                    await extract_user(new_user["message"])])
-                return {
-                    "status": True,
-                    "message": f"Usuário {nome} adicionado ao banco de dados",
-                }
+                insert_user: object | None = \
+                    await extract_user(new_user["message"])
+                if insert_user:
+                    await dbo_insert(engine, [insert_user])
+                    return {
+                        "status": True,
+                        "message": f"Usuário {nome} adicionado ao banco de dados",
+                    }
+                else:
+                    return {
+                        "status": False,
+                        "message": f"""Usuário {nome} NÃO adicionado ao banco de \
+dados""",
+                    }
         else:
             return {
                 "status": False,
@@ -357,43 +388,26 @@ async def update_matches(match_ids: list[str], lang: str = "br") -> None:
     except Exception as e:
         logger.exception(e)
 
-@dois.get("/atualizar/partidas/{nome}")
-async def update_user_matches(
-    nome: str,
-    offset: int = 0,
-    limit: int = 100,
-    start_time: float = (datetime.datetime.now(datetime.UTC) - \
-        datetime.timedelta(days = 1)).timestamp(),
-    end_time: float = (datetime.datetime.now(datetime.UTC)).timestamp(),
-    last_offset: int = 3000,
-    last_day: int = 21,
-    lang: str = "br") -> dict:
-    """Atualiza partidas no banco de dados"""   
+async def update_user_matches(*args, **kwargs) -> None:
+    """Atualiza banco de dados com partidas de usuário"""
     try:
-        await update_user(nome, lang)
+        await update_user(kwargs["nome"], kwargs["lang"])
         new_matches: dict = dict()
         all_matches: set = set()
         days_ago: int = 1
         agora: datetime.datetime = datetime.datetime.now(datetime.UTC)
-        kwargs: dict = dict(
-            offset = offset,
-            limit = limit,
-            start_time = start_time,
-            end_time = end_time,
-            lang = lang,
-        )
-        new_user: object = await name2pid(nome)
+        new_user: object = await name2pid(kwargs["nome"])
         if new_user["status"]:
             user_id: dict = new_user["message"]
             last_start: float = (agora - \
-                datetime.timedelta(days = last_day)).timestamp()
+                datetime.timedelta(days = kwargs["last_day"])).timestamp()
             last_end: float = (agora - \
-                datetime.timedelta(days = (last_day - 1))).timestamp()
+                datetime.timedelta(days = (kwargs["last_day"] - 1))).timestamp()
             while (last_start <= kwargs["start_time"]) and \
                 (last_end <= kwargs["end_time"]):
                 while kwargs["offset"] <= last_offset:
                     new_matches = await matches(user_id, **kwargs)
-                    logger.warning(f"""matches found: \
+                    logger.info(f"""matches found: \
 {len(new_matches['message'])}, all matches: {len(all_matches)}, args: \
 {kwargs}""")
                     if new_matches["status"]:
@@ -406,16 +420,62 @@ async def update_user_matches(
                     days = days_ago)).timestamp()
                 days_ago += 1
             await update_matches(all_matches)
-            return {
-                "status": True,
-                "message": f"""Partidas da(o) usuária(o) {nome} \
-adicionadas ao banco de dados""",
-            }
+            logger.info(f"""Partidas da(o) usuária(o) {kwargs["nome"]} \
+adicionadas ao banco de dados""")
         else:
-            return {
-                "status": False,
-                "message": f"Usuário {nome} não encotrado na API do Origins",
-            }
+            logger.warning(f"""Usuário {kwargs["nome"]} não encontrado na API do \
+Origins""")
+    except Exception as e:
+        logger.exception(e)
+
+@dois.get("/atualizar/partidas/{nome}")
+async def atualizar_partidas(
+    nome: str,
+    offset: int = 0,
+    limit: int = 100,
+    start_time: float = (datetime.datetime.now(datetime.UTC) - \
+        datetime.timedelta(days = 1)).timestamp(),
+    end_time: float = (datetime.datetime.now(datetime.UTC)).timestamp(),
+    last_offset: int = 3000,
+    last_day: int = 21,
+    delay: int = 1,
+    repetir: int = 0,
+    r_days: int = 0,
+    r_hours: int = 0,
+    r_minutes: int = 0,
+    lang: str = "br") -> dict:
+    """Atualiza partidas no banco de dados"""   
+    try:
+        r_kwargs: dict = {}
+        if r_days > 0:
+            r_kwargs["days"] = r_days
+        elif r_hours > 0:
+            r_kwargs["hours"] = r_hours
+        elif r_minutes > 0:
+            r_kwargs["minutes"] = r_minutes
+        await agendar(
+            update_user_matches,
+            ["partidas", nome],
+            j_kwargs = {
+                "nome": nome,
+                "offset": offset,
+                "limit": limit,
+                "start_time": start_time,
+                "end_time": end_time,
+                "last_offset": last_offset,
+                "last_day": last_day,
+                "lang": lang,
+            },
+            j_date = {"minutes": delay},
+            repetir = repetir,
+            scheduler = agendador,
+            r_kwargs = r_kwargs,
+        )
+        return {
+            "status": True,
+            "message": f"""Partidas da(o) usuária(o) {nome} \
+agendadas para serem adicionadas ao banco de dados""",
+        }
     except Exception as e:
         logger.exception(e)
         return {
