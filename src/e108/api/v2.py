@@ -206,22 +206,17 @@ adding now""")
         logger.exception(e)
         return None
 
-@dois.get("/atualizar/usuario/{nome}")
-async def update_user(nome: str, lang: str = "br") -> dict:
-    """Atualiza usuário no banco de dados"""
+async def update_user(*args, **kwargs) -> None:
+    """Atualiza ou cria dados do usuário no banco de dados"""
     try:
-        new_user: object = await user_name(nome)
+        new_user: object = await user_name(kwargs["nome"])
         if new_user["status"]:
             user_object: dict = new_user["message"]
             try:
                 with Session(engine) as session:
-                    user_model = session.scalars(select(User).where(
+                    user_model: object = session.scalars(select(User).where(
                         User.bouncerPlayerId == user_object["bouncerPlayerId"]
                         )).one()
-                return {
-                    "status": True,
-                    "message": f"Usuário {nome} dados atualizados (mentira)",
-                }
                     # ~ try:
                         # ~ session.scalars(select(UserFigureString).where(
                             # ~ UserFigureString.figureString == \
@@ -257,32 +252,67 @@ async def update_user(nome: str, lang: str = "br") -> dict:
                     # ~ user.updateTime = int(datetime.datetime.now(
                         # ~ datetime.UTC).timestamp())
                     # ~ session.commit()
+                logger.info(f"""Usuário {kwargs["nome"]} dados atualizados \
+(mentira)""")
             except NoResultFound:
                 insert_user: object | None = \
                     await extract_user(new_user["message"])
                 if insert_user:
                     await dbo_insert(engine, [insert_user])
-                    return {
-                        "status": True,
-                        "message": f"Usuário {nome} adicionado ao banco de dados",
-                    }
+                    logger.info(f"""Usuário {kwargs["nome"]} adicionado ao \
+banco de dados""")
                 else:
-                    return {
-                        "status": False,
-                        "message": f"""Usuário {nome} NÃO adicionado ao banco de \
-dados""",
-                    }
+                    logger.warning(f"""Usuário {kwargs["nome"]} NÃO adicionado ao \
+banco de dados""")
         else:
-            return {
-                "status": False,
-                "message": f"Usuário {nome} não encotrado na API do Origins",
-            }
+            logger.warning(f"""Usuário {kwargs["nome"]} não encontrado na API do \
+Origins""")
+    except Exception as e:
+        logger.exception(e)
+
+@dois.get("/atualizar/usuario/{nome}")
+async def atualizar_usuario(
+    nome: str,
+    delay: int = 1,
+    repetir: int = 0,
+    r_days: int = 0,
+    r_hours: int = 0,
+    r_minutes: int = 0,
+    lang: str = "br",
+) -> dict:
+    """Atualiza usuário no banco de dados"""
+    try:
+        r_kwargs: dict = {}
+        if r_days > 0:
+            r_kwargs["days"] = r_days
+        elif r_hours > 0:
+            r_kwargs["hours"] = r_hours
+        elif r_minutes > 0:
+            r_kwargs["minutes"] = r_minutes
+        await agendar(
+            update_user,
+            ["usuario", nome],
+            j_kwargs = {"nome": nome, "lang": lang},
+            j_date = {"minutes": delay},
+            repetir = repetir,
+            scheduler = agendador,
+            r_kwargs = r_kwargs,
+        )
+        return {
+            "status": True,
+            "message": f"""Usuária(o) {nome} agendada(o) para ser adicionada(o) \
+ao banco de dados""",
+        }
     except Exception as e:
         logger.exception(e)
         return {
             "status": False,
             "message": repr(e),
         }
+    return {
+        "status": False,
+        "message": "Não deu certo",
+    }
 
 async def extract_participant(match_id: str, participant: dict,
     lang: str = "br") -> MatchPlayer:
@@ -443,7 +473,8 @@ async def atualizar_partidas(
     r_days: int = 0,
     r_hours: int = 0,
     r_minutes: int = 0,
-    lang: str = "br") -> dict:
+    lang: str = "br",
+) -> dict:
     """Atualiza partidas no banco de dados"""   
     try:
         r_kwargs: dict = {}
@@ -487,26 +518,25 @@ agendadas para serem adicionadas ao banco de dados""",
         "message": "Não deu certo",
     }
 
-@dois.get("/atualizar/placar/{placar}/{nome}")
-async def atualizar_placar(placar: str, nome: str, lang: str = "br") -> dict:
-    """GET /atualizar/placar"""
+async def update_leaderboard_user(*args, **kwargs) -> None:
+    """Atualiza placar de usuário com total de pontuação"""
     try:
-        await update_user(nome, lang)
+        await update_user(**kwargs)
         with Session(engine) as session:
             placar_stmt: object = select(Leaderboard).where(
-                Leaderboard.description == placar)
+                Leaderboard.description == kwargs["placar"])
             try:
                 placar_object: Leaderboard = session.scalars(placar_stmt).one()
             except NoResultFound:
                 placar_object: Leaderboard = Leaderboard(
-                    uuid = str(uuid.uuid4()), description = placar)
+                    uuid = str(uuid.uuid4()), description = kwargs["placar"])
                 session.add(placar_object)
-            user_stmt: object = select(User).where(User.name == nome)
+            user_stmt: object = select(User).where(User.name == kwargs["nome"])
             try:
                 ## FIXME: não tem razão pra isso não funcionar
                 user_id: str = session.scalars(user_stmt).one().bouncerPlayerId
             except NoResultFound:
-                user_id: str = (await name2pid(nome))["message"]
+                user_id: str = (await name2pid(kwargs["nome"]))["message"]
             scores_stmt: object = select(Match).where(Match.ranked == True)
             scores: object = session.scalars(scores_stmt).all()
             mps: list = []
@@ -518,14 +548,14 @@ async def atualizar_placar(placar: str, nome: str, lang: str = "br") -> dict:
                 p.participants if s.user_id == user_id])
             score_stmt: object = select(LeaderboardItem).where(
                 LeaderboardItem.leaderboard_id == placar_object.uuid,
-                LeaderboardItem.name == nome)
+                LeaderboardItem.name == kwargs["nome"])
             try:
                 score_object: LeaderboardItem = session.scalars(
                     score_stmt).one()
             except NoResultFound:
                 score_object: LeaderboardItem = LeaderboardItem(
                     uuid = str(uuid.uuid4()),
-                    name = nome,
+                    name = kwargs["nome"],
                     leaderboard_id = placar_object.uuid,
                     # ~ user_id = user_id,
                 )
@@ -546,9 +576,47 @@ async def atualizar_placar(placar: str, nome: str, lang: str = "br") -> dict:
             # ~ except MultipleResultsFound:
                 # ~ pass
             session.commit()
+        logger.info(f"Total de pontos para {kwargs['nome']}: {total}")
+    except Exception as e:
+        logger.exception(e)
+
+@dois.get("/atualizar/placar/{placar}/{nome}")
+async def atualizar_placar_usuario(
+    placar: str,
+    nome: str,
+    delay: int = 1,
+    repetir: int = 0,
+    r_days: int = 0,
+    r_hours: int = 0,
+    r_minutes: int = 0,
+    lang: str = "br",
+) -> dict:
+    """Atualiza partidas no banco de dados"""   
+    try:
+        r_kwargs: dict = {}
+        if r_days > 0:
+            r_kwargs["days"] = r_days
+        elif r_hours > 0:
+            r_kwargs["hours"] = r_hours
+        elif r_minutes > 0:
+            r_kwargs["minutes"] = r_minutes
+        await agendar(
+            update_leaderboard_user,
+            ["placar", placar, nome],
+            j_kwargs = {
+                "nome": nome,
+                "placar": placar,
+                "lang": lang,
+            },
+            j_date = {"minutes": delay},
+            repetir = repetir,
+            scheduler = agendador,
+            r_kwargs = r_kwargs,
+        )
         return {
             "status": True,
-            "message": f"Total de pontos para {nome}: {total}",
+            "message": f"""Pontos de {nome} no placar {placar} \
+agendados para serem adicionadas ao banco de dados""",
         }
     except Exception as e:
         logger.exception(e)
@@ -556,6 +624,10 @@ async def atualizar_placar(placar: str, nome: str, lang: str = "br") -> dict:
             "status": False,
             "message": repr(e),
         }
+    return {
+        "status": False,
+        "message": "Não deu certo",
+    }
 
 @dois.get("/placar/{placar}")
 async def get_placar(placar: str, lang: str = "br") -> dict:
