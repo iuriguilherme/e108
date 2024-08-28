@@ -339,7 +339,7 @@ async def extract_participant(match_id: str, participant: dict,
             if player_id["status"]:
                 new_player: dict = await user_id(player_id["message"])
                 if new_player["status"]:
-                    await update_user({"name": new_player["message"]["name"],
+                    await update_user(**{"name": new_player["message"]["name"],
                         "lang": lang})
                 else:
                     logger.warning(f"""Usuário {player_id['message']} \
