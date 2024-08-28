@@ -6,9 +6,11 @@ logger: logging.Logger = logging.getLogger(__name__)
 
 import requests
 import sys
+import time
 
 api: str = "https://habborigins.com.br/api/v2"
 
+delay: int = int(1e1)
 dias: int = 2
 try:
     dias = sys.argv[1]
@@ -20,9 +22,13 @@ try:
         users: list[str] = [l.rstrip() for l in f]
     for user in users:
         logger.info(f"Atualizando {user}")
+        time.sleep(delay)
         requests.get("/".join([api, "atualizar",
-            "partidas", f"{user}?last_day={dias}"]))
+            "partidas", f"{user}?last_day={dias}&bypass=1"]))
+    for user in users:
+        logger.info(f"Atualizando placar para {user}")
+        time.sleep(delay)
         requests.get("/".join([api, "atualizar",
-            "placar", "um", user]))
+            "placar", "um", f"{user}?bypass=1"]))
 except Exception as e:
     logger.exception(e)

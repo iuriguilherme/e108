@@ -449,7 +449,14 @@ async def update_user_matches(*args, **kwargs) -> None:
             while (last_start <= kwargs["start_time"]) and \
                 (last_end <= kwargs["end_time"]):
                 while kwargs["offset"] <= kwargs["last_offset"]:
-                    new_matches = await matches(user_id, **kwargs)
+                    new_matches = await matches(
+                        pid = user_id,
+                        offset = kwargs.get("offset"),
+                        limit = kwargs.get("limit"),
+                        start_time = kwargs.get("start_time"),
+                        end_time = kwargs.get("end_time"),
+                        lang = kwargs.get("lang"),
+                    )
                     logger.info(f"""matches found: \
 {len(new_matches['message'])}, all matches: {len(all_matches)}, args: \
 {kwargs}""")
