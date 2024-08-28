@@ -206,10 +206,10 @@ database, adding now""")
         logger.exception(e)
         return None
 
-async def update_user(*args, **kwargs) -> None:
+async def update_user(nome: str, lang: str = "br") -> None:
     """Atualiza ou cria dados do usuário no banco de dados"""
     try:
-        new_user: object = await user_name(kwargs["nome"])
+        new_user: object = await user_name(nome)
         if new_user["status"]:
             user_object: dict = new_user["message"]
             try:
@@ -252,20 +252,20 @@ async def update_user(*args, **kwargs) -> None:
                     # ~ user.updateTime = int(datetime.datetime.now(
                         # ~ datetime.UTC).timestamp())
                     # ~ session.commit()
-                logger.info(f"""Usuário {kwargs["nome"]} dados atualizados \
+                logger.info(f"""Usuário {nome} dados atualizados \
 (mentira)""")
             except NoResultFound:
                 insert_user: object | None = \
                     await extract_user(new_user["message"])
                 if insert_user:
                     await dbo_insert(engine, [insert_user])
-                    logger.info(f"""Usuário {kwargs["nome"]} adicionado ao \
+                    logger.info(f"""Usuário {nome} adicionado ao \
 banco de dados""")
                 else:
-                    logger.warning(f"""Usuário {kwargs["nome"]} NÃO adicionado ao \
+                    logger.warning(f"""Usuário {nome} NÃO adicionado ao \
 banco de dados""")
         else:
-            logger.warning(f"""Usuário {kwargs["nome"]} não encontrado na API do \
+            logger.warning(f"""Usuário {nome} não encontrado na API do \
 Origins""")
     except Exception as e:
         logger.exception(e)
@@ -296,7 +296,7 @@ async def atualizar_usuario(
                 update_user,
                 ["usuario", nome],
                 agendador,
-                j_kwargs = {"nome": nome, "lang": lang},
+                j_args = [nome, lang],
                 j_date = {"minutes": delay},
                 repetir = bool(repetir),
                 r_kwargs = r_kwargs,
@@ -308,7 +308,7 @@ async def atualizar_usuario(
 adicionada(o) ao banco de dados""",
             }
         else:
-            await update_user(**{"nome": nome, "lang": lang})
+            await update_user(nome, lang)
             return {
                 "status": True,
                 "message": f"""Usuária(o) {nome} adicionada(o) ao banco de \
@@ -339,8 +339,7 @@ async def extract_participant(match_id: str, participant: dict,
             if player_id["status"]:
                 new_player: dict = await user_id(player_id["message"])
                 if new_player["status"]:
-                    await update_user(**{"name": new_player["message"]["name"],
-                        "lang": lang})
+                    await update_user(new_player["message"]["name"], lang)
                 else:
                     logger.warning(f"""Usuário {player_id['message']} \
 não encontrado""")
@@ -433,7 +432,7 @@ async def update_matches(match_ids: list[str], lang: str = "br") -> None:
 async def update_user_matches(*args, **kwargs) -> None:
     """Atualiza banco de dados com partidas de usuário"""
     try:
-        await update_user(**kwargs)
+        await update_user(kwargs["nome"], kwargs["lang"])
         new_matches: dict = dict()
         all_matches: set = set()
         days_ago: int = 1
@@ -486,7 +485,7 @@ async def atualizar_partidas(
     start_time: float = (datetime.datetime.now(datetime.UTC) - \
         datetime.timedelta(days = 1)).timestamp(),
     end_time: float = (datetime.datetime.now(datetime.UTC)).timestamp(),
-    last_offset: int = 3000,
+    last_offset: int = 1700,
     last_day: int = 21,
     delay: int = 1,
     repetir: int = 0,
@@ -561,7 +560,7 @@ ao banco de dados""",
 async def update_leaderboard_user(*args, **kwargs) -> None:
     """Atualiza placar de usuário com total de pontuação"""
     try:
-        await update_user(**kwargs)
+        await update_user(kwargs["nome"], kwargs["lang"])
         with Session(engine) as session:
             placar_stmt: object = select(Leaderboard).where(
                 Leaderboard.description == kwargs["placar"])
