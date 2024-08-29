@@ -85,6 +85,9 @@ except Exception as e:
     sys.exit("Erro fatal, stacktrace acima")
 
 try:
+    Path("instance").mkdir(parents = True, exist_ok = True)
+    matches_file: Path = Path("instance/matches.txt")
+    users_file: Path = Path("instance/users.txt")
     engine: object = create_engine(os.getenv("DB_URL_2",
         default = "sqlite+pysqlite:///:memory:"), echo = True)
     Base.metadata.create_all(engine)
@@ -93,12 +96,6 @@ try:
 except Exception as e:
     logger.exception(e)
     sys.exit("Erro fatal, stacktrace acima")
-
-try:
-    Path("instance").mkdir(parents = True, exist_ok = True)
-except Exception as e:
-    logger.exception(e)
-    logger.warning("instance não foi criada, verifique permissões de diretório")
 
 dois: APIRouter = APIRouter()
 
@@ -208,7 +205,7 @@ database, adding now""")
         logger.exception(e)
         return None
 
-async def update_user(nome: str, lang: str = "br") -> None:
+async def update_user(nome: str, lang: str = "br") -> bool:
     """Atualiza ou cria dados do usuário no banco de dados"""
     try:
         new_user: object = await user_name(nome)
@@ -256,6 +253,7 @@ async def update_user(nome: str, lang: str = "br") -> None:
                     # ~ session.commit()
                 logger.info(f"""Usuário {nome} dados atualizados \
 (mentira)""")
+                return True
             except NoResultFound:
                 insert_user: object | None = \
                     await extract_user(new_user["message"])
@@ -263,12 +261,33 @@ async def update_user(nome: str, lang: str = "br") -> None:
                     await dbo_insert(engine, [insert_user])
                     logger.info(f"""Usuário {nome} adicionado ao \
 banco de dados""")
+                    return True
                 else:
                     logger.warning(f"""Usuário {nome} NÃO adicionado ao \
 banco de dados""")
         else:
             logger.warning(f"""Usuário {nome} não encontrado na API do \
 Origins""")
+    except Exception as e:
+        logger.exception(e)
+    return False
+
+async def update_user_not_really(nome: str, lang: str = "br") -> None:
+    """Atualiza ou cria dados do usuário no arquivo de usuários"""
+    try:
+        all_users: set = set()
+        all_users.add(nome)
+        try:
+            with open(users_file, 'r+') as uf:
+                all_users.update(uf.read().splitlines())
+        except Exception as e:
+            logger.exception(e)
+        try:
+            with open(users_file, 'w+') as uf:
+                uf.writelines([u + '\n' for u in all_users])
+        except Exception as e:
+            logger.exception(e)
+        logger.info(f"""Usuário {nome} adicionado à lista de usuários""")
     except Exception as e:
         logger.exception(e)
 
@@ -283,6 +302,7 @@ async def atualizar_usuario(
     lang: str = "br",
     jobstore: str = "default",
     bypass: int = 0,
+    force: int = 0,
 ) -> dict:
     """Atualiza usuário no banco de dados"""
     try:
@@ -309,12 +329,19 @@ async def atualizar_usuario(
                 "message": f"""Usuária(o) {nome} agendada(o) para ser \
 adicionada(o) ao banco de dados""",
             }
-        else:
+        elif bool(force):
             await update_user(nome, lang)
             return {
                 "status": True,
                 "message": f"""Usuária(o) {nome} adicionada(o) ao banco de \
 dados""",
+            }
+        else:
+            await update_user_not_really(nome, lang)
+            return {
+                "status": True,
+                "message": f"""Usuária(o) {nome} adicionada(o) à lista de \
+usuários para posterior inserção no banco de dados.""",
             }
     except Exception as e:
         logger.exception(e)
@@ -398,6 +425,40 @@ async def extract_match(new_match: dict, lang: str = "br") -> Match:
             for participant in new_match["info"]["participants"]],
     )
 
+async def update_match(match_id: str, lang: str = "br") -> bool:
+    """Atualiza banco de dados com partida"""
+    try:
+        new_matches: list = []
+        new_match: dict = await match(match_id)
+        if new_match["status"]:
+            try:
+                with Session(engine) as session:
+                    session.scalars(select(Match).where(
+                        Match.matchId == match_id)).one()
+                for participant in \
+                    new_match["message"]["info"]["participants"]:
+                    try:
+                        with Session(engine) as session:
+                            session.scalars(select(MatchPlayer).where(
+                                MatchPlayer.user_id == \
+                                participant["gamePlayerId"]).where(
+                                MatchPlayer.match_id == \
+                                new_match["message"]["metadata"
+                                ]["matchId"])).one()
+                    except NoResultFound:
+                        new_matches.append(await extract_participant(
+                            match_id, participant))
+            except NoResultFound:
+                new_matches.append(await extract_match(
+                    new_match["message"]))
+            await dbo_insert(engine, new_matches)
+            return True
+        else:
+            logger.warning(f"Partida {match_id} não encontrada")
+    except Exception as e:
+        logger.exception(e)
+    return False
+
 async def update_matches(match_ids: list[str], lang: str = "br") -> None:
     """Atualiza banco de dados com partidas"""
     try:
@@ -409,19 +470,19 @@ async def update_matches(match_ids: list[str], lang: str = "br") -> None:
                     with Session(engine) as session:
                         session.scalars(select(Match).where(
                             Match.matchId == match_id)).one()
-                        for participant in \
-                            new_match["message"]["info"]["participants"]:
-                            try:
-                                with Session(engine) as session:
-                                    session.scalars(select(MatchPlayer).where(
-                                        MatchPlayer.user_id == \
-                                        participant["gamePlayerId"]).where(
-                                        MatchPlayer.match_id == \
-                                        new_match["message"]["metadata"
-                                        ]["matchId"])).one()
-                            except NoResultFound:
-                                new_matches.append(await extract_participant(
-                                    match_id, participant))
+                    for participant in \
+                        new_match["message"]["info"]["participants"]:
+                        try:
+                            with Session(engine) as session:
+                                session.scalars(select(MatchPlayer).where(
+                                    MatchPlayer.user_id == \
+                                    participant["gamePlayerId"]).where(
+                                    MatchPlayer.match_id == \
+                                    new_match["message"]["metadata"
+                                    ]["matchId"])).one()
+                        except NoResultFound:
+                            new_matches.append(await extract_participant(
+                                match_id, participant))
                 except NoResultFound:
                     new_matches.append(await extract_match(
                         new_match["message"]))
@@ -431,7 +492,7 @@ async def update_matches(match_ids: list[str], lang: str = "br") -> None:
     except Exception as e:
         logger.exception(e)
 
-async def update_user_matches(*args, **kwargs) -> None:
+async def update_user_matches(**kwargs) -> None:
     """Atualiza banco de dados com partidas de usuário"""
     try:
         await update_user(kwargs["nome"], kwargs["lang"])
@@ -479,8 +540,216 @@ Origins""")
     except Exception as e:
         logger.exception(e)
 
-@dois.get("/atualizar/partidas/{nome}")
+async def update_user_matches_not_really(**kwargs) -> None:
+    """Atualiza arquivo de texto com partidas de usuário"""
+    try:
+        await update_user_not_really(kwargs["nome"], kwargs["lang"])
+        new_matches: dict = dict()
+        all_matches: set = set()
+        try:
+            with open(matches_file, 'r+') as mf:
+                all_matches.update(mf.read().splitlines())
+        except Exception as e:
+            logger.exception(e)
+        days_ago: int = 1
+        agora: datetime.datetime = datetime.datetime.now(datetime.UTC)
+        new_user: object = await name2pid(kwargs["nome"])
+        if new_user["status"]:
+            user_id: dict = new_user["message"]
+            last_start: float = (agora - \
+                datetime.timedelta(days = kwargs["last_day"])).timestamp()
+            last_end: float = (agora - \
+                datetime.timedelta(days = (kwargs["last_day"] - 1))
+                    ).timestamp()
+            while (last_start <= kwargs["start_time"]) and \
+                (last_end <= kwargs["end_time"]):
+                while kwargs["offset"] <= kwargs["last_offset"]:
+                    new_matches = await matches(
+                        pid = user_id,
+                        offset = kwargs.get("offset"),
+                        limit = kwargs.get("limit"),
+                        start_time = kwargs.get("start_time"),
+                        end_time = kwargs.get("end_time"),
+                        lang = kwargs.get("lang"),
+                    )
+                    logger.info(f"""matches found: \
+{len(new_matches['message'])}, all matches: {len(all_matches)}, args: \
+{kwargs}""")
+                    if new_matches["status"]:
+                        all_matches.update(new_matches["message"])
+                    kwargs["offset"] += kwargs["limit"]
+                kwargs["offset"] = 0
+                kwargs["start_time"] = (agora - \
+                    datetime.timedelta(days = (days_ago + 1))).timestamp()
+                kwargs["end_time"] = (agora - datetime.timedelta(
+                    days = days_ago)).timestamp()
+                days_ago += 1
+            # ~ await update_matches(all_matches)
+            try:
+                with open(matches_file, 'w+') as mf:
+                    mf.writelines([m + '\n' for m in all_matches])
+            except Exception as e:
+                logger.exception(e)
+            logger.info(f"""Partidas da(o) usuária(o) {kwargs["nome"]} \
+adicionadas ao banco de dados""")
+        else:
+            logger.warning(f"""Usuário {kwargs["nome"]} não encontrado na API do \
+Origins""")
+    except Exception as e:
+        logger.exception(e)
+
+async def update_users_actually(lang: str = "br") -> None:
+    """Atualiza usuários da lista de usuários para o arquivo de usuários"""
+    try:
+        all_users: set = set()
+        try:
+            with open(users_file, 'r+') as uf:
+                all_users.update(uf.read().splitlines())
+        except Exception as e:
+            logger.exception(e)
+        for new_user in [u for u in all_users]:
+            if await update_user(nome = new_user, lang = lang):
+                all_user.remove(new_user)
+        try:
+            with open(users_file, 'w+') as uf:
+                uf.writelines([u + '\n' for u in all_users])
+        except Exception as e:
+            logger.exception(e)
+        logger.info(f"Usuários adicionados ao banco de dados")
+    except Exception as e:
+        logger.exception(e)
+
+async def update_matches_actually(lang: str = "br") -> None:
+    """Atualiza partidas do arquivo para o banco de dados"""
+    try:
+        all_matches: set = set()
+        try:
+            with open(matches_file, 'r+') as mf:
+                all_matches.update(uf.read().splitlines())
+        except Exception as e:
+            logger.exception(e)
+        for match_id in [m for m in all_matches]:
+            if await update_match(match_id = match_id, lang = lang):
+                all_matches.remove(match_id)
+        try:
+            with open(matches_file, 'w+') as mf:
+                mf.writelines([m + '\n' for m in all_matches])
+        except Exception as e:
+            logger.exception(e)
+        logger.info(f"Partidas atualizadas")
+    except Exception as e:
+        logger.exception(e)
+
+@dois.get("/atualizar/usuarios")
+async def atualizar_usuarios(
+    delay: int = 1,
+    repetir: int = 0,
+    r_days: int = 0,
+    r_hours: int = 0,
+    r_minutes: int = 0,
+    lang: str = "br",
+    jobstore: str = "default",
+    bypass: int = 0,
+) -> dict:
+    """Atualiza usuários do arquivo de usuários para o banco de dados"""   
+    try:
+        r_kwargs: dict = {}
+        if r_days > 0:
+            r_kwargs["days"] = r_days
+        elif r_hours > 0:
+            r_kwargs["hours"] = r_hours
+        elif r_minutes > 0:
+            r_kwargs["minutes"] = r_minutes
+        if not bool(bypass):
+            await agendar(
+                update_users_actually,
+                ["usuarios", "lista"],
+                agendador,
+                j_kwargs = {"lang": lang},
+                j_date = {"minutes": delay},
+                repetir = bool(repetir),
+                r_kwargs = r_kwargs,
+                jobstore = jobstore,
+            )
+            return {
+                "status": True,
+                "message": f"""Partidas agendadas para serem adicionadas ao \
+banco de dados""",
+            }
+        else:
+            await update_users_actually(lang = lang)
+            return {
+                "status": True,
+                "message": f"""Partidas marcadas para inserção no banco de \
+dados.""",
+            }
+    except Exception as e:
+        logger.exception(e)
+        return {
+            "status": False,
+            "message": repr(e),
+        }
+    return {
+        "status": False,
+        "message": "Não deu certo",
+    }
+
+@dois.get("/atualizar/partidas")
 async def atualizar_partidas(
+    delay: int = 1,
+    repetir: int = 0,
+    r_days: int = 0,
+    r_hours: int = 0,
+    r_minutes: int = 0,
+    lang: str = "br",
+    jobstore: str = "default",
+    bypass: int = 0,
+) -> dict:
+    """Atualiza partidas do arquivo de partidas para o banco de dados"""   
+    try:
+        r_kwargs: dict = {}
+        if r_days > 0:
+            r_kwargs["days"] = r_days
+        elif r_hours > 0:
+            r_kwargs["hours"] = r_hours
+        elif r_minutes > 0:
+            r_kwargs["minutes"] = r_minutes
+        if not bool(bypass):
+            await agendar(
+                update_matches_actually,
+                ["partidas", "lista"],
+                agendador,
+                j_kwargs = {"lang": lang},
+                j_date = {"minutes": delay},
+                repetir = bool(repetir),
+                r_kwargs = r_kwargs,
+                jobstore = jobstore,
+            )
+            return {
+                "status": True,
+                "message": f"""Partidas agendadas para serem adicionadas ao \
+banco de dados""",
+            }
+        else:
+            await update_matches_actually(lang = lang)
+            return {
+                "status": True,
+                "message": f"""Partidas marcadas para inserção no banco de \
+dados.""",
+            }
+    except Exception as e:
+        logger.exception(e)
+        return {
+            "status": False,
+            "message": repr(e),
+        }
+    return {
+        "status": False,
+        "message": "Não deu certo",
+    }
+
+@dois.get("/atualizar/partidas/{nome}")
+async def atualizar_partidas_nome(
     nome: str,
     offset: int = 0,
     limit: int = 100,
@@ -497,6 +766,7 @@ async def atualizar_partidas(
     lang: str = "br",
     jobstore: str = "default",
     bypass: int = 0,
+    force: int = 0,
 ) -> dict:
     """Atualiza partidas no banco de dados"""   
     try:
@@ -532,7 +802,7 @@ async def atualizar_partidas(
                 "message": f"""Partidas da(o) usuária(o) {nome} agendadas \
 para serem adicionadas ao banco de dados""",
             }
-        else:
+        elif bool(force):
             await update_user_matches(**{
                 "nome": nome,
                 "offset": offset,
@@ -545,8 +815,24 @@ para serem adicionadas ao banco de dados""",
             })
             return {
                 "status": True,
+                "message": f"""Partidas da(o) usuária(o) {nome} salvas para \
+posterior inserção no banco de dados.""",
+            }
+        else:
+            await update_user_matches_not_really(**{
+                "nome": nome,
+                "offset": offset,
+                "limit": limit,
+                "start_time": start_time,
+                "end_time": end_time,
+                "last_offset": last_offset,
+                "last_day": last_day,
+                "lang": lang,
+            })
+            return {
+                "status": True,
                 "message": f"""Partidas da(o) usuária(o) {nome} adicionadas \
-ao banco de dados""",
+à lista de partidas para posteriormente serem adicionadas ao banco de dados""",
             }
     except Exception as e:
         logger.exception(e)
