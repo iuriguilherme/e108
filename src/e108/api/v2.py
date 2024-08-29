@@ -158,15 +158,17 @@ async def update_user_model(user: User, new_user: dict) -> User:
     return user
 
 async def extract_user(user: dict, lang: str = "br") -> User:
-    """Transforma usuário em modelo"""
+    """Transforma jogador em modelo"""
     try:
+        if user.get("lastAccessTime") in [None, ""]:
+            user["lastAccessTime"] = "1970-01-01T00:00:00.000+0000"
         u: User = User(
             uniqueId = str(user["uniqueId"]),
             bouncerPlayerId = str(user["bouncerPlayerId"]),
             name = str(user["name"]),
             figureString = str(user["figureString"]),
             lastAccessTime = int(datetime.datetime.strptime(
-                user.get("lastAccessTime", "1970-01-01T00:00:00.000+0000"),
+                user["lastAccessTime"],
                 "%Y-%m-%dT%H:%M:%S.%f%z").timestamp()),
             memberSince = int(datetime.datetime.strptime(
                 user["memberSince"], "%Y-%m-%dT%H:%M:%S.%f%z").timestamp()),
