@@ -609,7 +609,7 @@ async def update_users_actually(lang: str = "br") -> None:
             logger.exception(e)
         for new_user in [u for u in all_users]:
             if await update_user(nome = new_user, lang = lang):
-                all_user.remove(new_user)
+                all_users.remove(new_user)
         try:
             with open(users_file, 'w+') as uf:
                 uf.writelines([u + '\n' for u in all_users])
@@ -625,7 +625,7 @@ async def update_matches_actually(lang: str = "br") -> None:
         all_matches: set = set()
         try:
             with open(matches_file, 'r+') as mf:
-                all_matches.update(uf.read().splitlines())
+                all_matches.update(mf.read().splitlines())
         except Exception as e:
             logger.exception(e)
         for match_id in [m for m in all_matches]:
