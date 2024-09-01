@@ -4,12 +4,53 @@
 <h2>Ranking do Battle Ball</h2>
 <hr>
 <p>Botaram a API no ar, esperando o iggy botar o site no ar.</p>
-<ul class="list-group">
-    <li class="list-group-item">(1ª) LILO tem 690420 pontos</li>
-    <li class="list-group-item">(2ª) Butter tem 171157 pontos</li>
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Posi&ccedil;&atilde;o</th>
+            <th scope="col">Nome</th>
+            <th scope="col">Pontu&ccedil;&atilde;o</th>
+            <th scope="col">Pr&ecirc;mio</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr class="table-primary">
+            <th scope="row">1</th>
+            <td>LILO</td>
+            <td>690420</td>
+            <td>O nosso amor &hearts;</td>
+        </tr>
+        <tr class="table-primary">
+            <th scope="row">2</th>
+            <td>Butter</td>
+            <td>171157</td>
+            <td>O nosso amor &hearts;</td>
+        </tr>
 {% for nome, pontos in rankings %}
-    <li class="list-group-item">
-({{ loop.index + 2 }}ª) {{ nome }} tem {{ pontos }} pontos</li>
+        <tr class="table-{% if 1 <= loop.index <= 5 %}
+warning
+{% elif 6 <= loop.index <= 15 %}
+secondary
+{% elif 16 <= loop.index <= 40 %}
+danger
+{% else %}
+light
+{% endif %}">
+            <th scope="row">{{ loop.index + 2 }}</th>
+            <td>{{ nome }}</td>
+            <td>{{ pontos }}</td>
+            <td>
+{% if 1 <= loop.index <= 5 %}
+    Dragão Dourado
+{% elif 6 <= loop.index <= 15 %}
+    Dragão de Prateado
+{% elif 16 <= loop.index <= 40 %}
+    Dragão de Bronze
+{% else %}
+    Porra Nenhuma
+{% endif %}</td>
+        </tr>
 {% endfor %}
-</ul>
+    </tbody>
+</table>
 {% endblock %}

@@ -11,7 +11,7 @@ import time
 api: str = "https://habborigins.com.br/api/v2"
 
 delay: int = int(1e1)
-dias: int = 2
+dias: int = 21
 try:
     dias = sys.argv[1]
 except:
@@ -25,6 +25,11 @@ try:
         time.sleep(delay)
         requests.get("/".join([api, "atualizar",
             "partidas", f"{user}?last_day={dias}&bypass=1"]))
+    time.sleep(delay)
+    requests.get("/".join([api, "atualizar",
+        "usuarios"]))
+    requests.get("/".join([api, "atualizar",
+        "partidas"]))
     for user in users:
         logger.info(f"Atualizando placar para {user}")
         time.sleep(delay)
