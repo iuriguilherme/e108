@@ -27,15 +27,7 @@
             <td>O nosso amor &hearts;</td>
         </tr>
 {% for nome, pontos in rankings %}
-        <tr class="table-{% if 1 <= loop.index <= 5 %}
-warning
-{% elif 6 <= loop.index <= 15 %}
-secondary
-{% elif 16 <= loop.index <= 40 %}
-danger
-{% else %}
-light
-{% endif %}">
+        <tr class="table-{% if 1 <= loop.index <= 5 %}warning{% elif 6 <= loop.index <= 15 %}secondary{% elif 16 <= loop.index <= 40 %}danger{% else %}light{% endif %}">
             <th scope="row">{{ loop.index + 2 }}</th>
             <td>{{ nome }}</td>
             <td>{{ pontos }}</td>
