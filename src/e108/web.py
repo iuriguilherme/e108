@@ -9,6 +9,7 @@ try:
     # ~ import json
     import os
     from quart import (
+        jsonify,
         Quart,
         render_template,
         request,
