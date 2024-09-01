@@ -205,68 +205,88 @@ database, adding now""")
         logger.exception(e)
         return None
 
-async def update_user(nome: str, lang: str = "br") -> bool:
+async def update_user(user_object: dict, lang: str = "br") -> bool:
     """Atualiza ou cria dados do usuário no banco de dados"""
     try:
-        new_user: object = await user_name(nome)
-        if new_user["status"]:
-            user_object: dict = new_user["message"]
-            try:
-                with Session(engine) as session:
-                    user_model: object = session.scalars(select(User).where(
-                        User.bouncerPlayerId == user_object["bouncerPlayerId"]
-                        )).one()
-                    # ~ try:
-                        # ~ session.scalars(select(UserFigureString).where(
-                            # ~ UserFigureString.figureString == \
-                            # ~ new_user["figureString"]
-                        # ~ )).one()
-                    # ~ except NoResultFound:
-                        # ~ pass
-                    # ~ user.figure_strings.append(UserFigureString(
-                        # ~ user_id = user["bouncerPlayerId"],
-                        # ~ figureString = new_user["figureString"]))
-                    # ~ user.access_times.append(UserAccessTime(
-                        # ~ user_id = new_user["bouncerPlayerId"],
-                        # ~ lastAccessTime = new_user["lastAccessTime"]))
-                    # ~ user.mottos.append(UserMotto(
-                        # ~ user_id = new_user["bouncerPlayerId"],
-                        # ~ motto = new_user["motto"]))
-                    # ~ user.profile_visibilities.append(UserVisibility(
-                        # ~ user_id = new_user["bouncerPlayerId"],
-                        # ~ profileVisible = new_user["profileVisible"]))
-                    # ~ user.levels.append(UserLevel(
-                        # ~ user_id = new_user["bouncerPlayerId"],
-                        # ~ currentLevel = new_user["currentLevel"]))
-                    # ~ user.level_percents.append(UserLevelPercent(
-                        # ~ user_id = new_user["bouncerPlayerId"],
-                        # ~ currentLevelCompletePercent = \
-                        # ~ new_user["currentLevelCompletePercent"]))
-                    # ~ user.star_gems.append(UserStarGem(
-                        # ~ user_id = new_user["bouncerPlayerId"],
-                        # ~ starGemCount = new_user["starGemCount"]))
-                    # ~ user.experiences.append(UserExperience(
-                        # ~ user_id = new_user["bouncerPlayerId"],
-                        # ~ totalExperience = new_user["totalExperience"]))
-                    # ~ user.updateTime = int(datetime.datetime.now(
-                        # ~ datetime.UTC).timestamp())
-                    # ~ session.commit()
-                logger.info(f"""Usuário {nome} dados atualizados \
+        with Session(engine) as session:
+            user_model: object = session.scalars(select(User).where(
+                User.bouncerPlayerId == user_object["bouncerPlayerId"]
+                )).one()
+            ## TODO: Buscar em cada uma das tabelas (no final?) pelo 
+            ## valor e atualizar se necessário. Atualizar a tabela 
+            ## User com o valor atual, se for diferente.
+            # ~ try:
+                # ~ session.scalars(select(UserFigureString).where(
+                    # ~ UserFigureString.figureString == \
+                    # ~ new_user["figureString"]
+                # ~ )).one()
+            # ~ except NoResultFound:
+                # ~ pass
+            # ~ user.figure_strings.append(UserFigureString(
+                # ~ user_id = user["bouncerPlayerId"],
+                # ~ figureString = new_user["figureString"]))
+            # ~ user.access_times.append(UserAccessTime(
+                # ~ user_id = new_user["bouncerPlayerId"],
+                # ~ lastAccessTime = new_user["lastAccessTime"]))
+            # ~ user.mottos.append(UserMotto(
+                # ~ user_id = new_user["bouncerPlayerId"],
+                # ~ motto = new_user["motto"]))
+            # ~ user.profile_visibilities.append(UserVisibility(
+                # ~ user_id = new_user["bouncerPlayerId"],
+                # ~ profileVisible = new_user["profileVisible"]))
+            # ~ user.levels.append(UserLevel(
+                # ~ user_id = new_user["bouncerPlayerId"],
+                # ~ currentLevel = new_user["currentLevel"]))
+            # ~ user.level_percents.append(UserLevelPercent(
+                # ~ user_id = new_user["bouncerPlayerId"],
+                # ~ currentLevelCompletePercent = \
+                # ~ new_user["currentLevelCompletePercent"]))
+            # ~ user.star_gems.append(UserStarGem(
+                # ~ user_id = new_user["bouncerPlayerId"],
+                # ~ starGemCount = new_user["starGemCount"]))
+            # ~ user.experiences.append(UserExperience(
+                # ~ user_id = new_user["bouncerPlayerId"],
+                # ~ totalExperience = new_user["totalExperience"]))
+            # ~ user.updateTime = int(datetime.datetime.now(
+                # ~ datetime.UTC).timestamp())
+            # ~ session.commit()
+        logger.info(f"""Usuário {user_object["name"]} dados atualizados \
 (mentira)""")
-                return True
-            except NoResultFound:
-                insert_user: object | None = \
-                    await extract_user(new_user["message"])
-                if insert_user:
-                    await dbo_insert(engine, [insert_user])
-                    logger.info(f"""Usuário {nome} adicionado ao \
-banco de dados""")
-                    return True
-                else:
-                    logger.warning(f"""Usuário {nome} NÃO adicionado ao \
-banco de dados""")
+        return True
+    except NoResultFound:
+        insert_user: object | None = \
+            await extract_user(user_object)
+        if insert_user:
+            await dbo_insert(engine, [insert_user])
+            logger.info(f"""Usuário {user_object["name"]} adicionado ao banco \
+de dados""")
+            return True
         else:
-            logger.warning(f"""Usuário {nome} não encontrado na API do \
+            logger.warning(f"""Usuário {user_object["name"]} NÃO adicionado \
+ao banco de dados""")
+    return False
+
+async def update_user_by_name(name: str, lang: str = "br") -> bool:
+    """Atualiza ou cria dados do usuário no banco de dados por nome"""
+    try:
+        new_user: object = await user_name(name)
+        if new_user["status"]:
+            return await update_user(new_user["message"], lang = lang)
+        else:
+            logger.warning(f"""Usuário {name} não encontrado na API do \
+Origins""")
+    except Exception as e:
+        logger.exception(e)
+    return False
+
+async def update_user_by_uid(uid: str, lang: str = "br") -> bool:
+    """Atualiza ou cria dados do usuário no banco de dados por user_id"""
+    try:
+        new_user: object = await user_id(uid)
+        if new_user["status"]:
+            return await update_user(new_user["message"], lang = lang)
+        else:
+            logger.warning(f"""Usuário {uid} não encontrado na API do \
 Origins""")
     except Exception as e:
         logger.exception(e)
@@ -330,7 +350,7 @@ async def atualizar_usuario(
 adicionada(o) ao banco de dados""",
             }
         elif bool(force):
-            await update_user(nome, lang)
+            await update_user_by_name(nome, lang = lang)
             return {
                 "status": True,
                 "message": f"""Usuária(o) {nome} adicionada(o) ao banco de \
@@ -364,14 +384,12 @@ async def extract_participant(match_id: str, participant: dict,
                     User.bouncerPlayerId == \
                     participant["gamePlayerId"])).one()
         except NoResultFound:
-            player_id: dict = await pid2uid(participant["gamePlayerId"])
+            ## FIXME: Isso aqui tá burro, são três requisições pra ver se o 
+            ## jogador já está no banco de dados!
+            player_id: dict = await pid2uid(participant["gamePlayerId"],
+                lang = lang)
             if player_id["status"]:
-                new_player: dict = await user_id(player_id["message"])
-                if new_player["status"]:
-                    await update_user(new_player["message"]["name"], lang)
-                else:
-                    logger.warning(f"""Usuário {player_id['message']} \
-não encontrado""")
+                await update_user_by_uid(player_id["message"], lang = lang)
             else:
                 logger.warning(f"""Usuário {participant['gamePlayerId']} \
 não encontrado""")
@@ -380,7 +398,7 @@ não encontrado""")
     return MatchPlayer(
         uuid = str(uuid.uuid4()),
         match_id = match_id,
-        user_id = f"{participant['gamePlayerId']}",
+        user_id = str(participant["gamePlayerId"]),
         teamId = int(participant["teamId"]),
         gameScore = int(participant["gameScore"]),
         playerPlacement = int(participant["playerPlacement"]),
@@ -495,7 +513,7 @@ async def update_matches(match_ids: list[str], lang: str = "br") -> None:
 async def update_user_matches(**kwargs) -> None:
     """Atualiza banco de dados com partidas de usuário"""
     try:
-        await update_user(kwargs["nome"], kwargs["lang"])
+        await update_user_by_name(kwargs["nome"], lang = kwargs["lang"])
         new_matches: dict = dict()
         all_matches: set = set()
         days_ago: int = 1
@@ -608,7 +626,7 @@ async def update_users_actually(lang: str = "br") -> None:
         except Exception as e:
             logger.exception(e)
         for new_user in [u for u in all_users]:
-            if await update_user(nome = new_user, lang = lang):
+            if await update_user_by_name(new_user, lang = lang):
                 all_users.remove(new_user)
         try:
             with open(users_file, 'w+') as uf:
@@ -673,14 +691,14 @@ async def atualizar_usuarios(
             )
             return {
                 "status": True,
-                "message": f"""Partidas agendadas para serem adicionadas ao \
+                "message": f"""Usuárias agendadas para serem adicionadas ao \
 banco de dados""",
             }
         else:
             await update_users_actually(lang = lang)
             return {
                 "status": True,
-                "message": f"""Partidas marcadas para inserção no banco de \
+                "message": f"""Usuárias marcadas para inserção no banco de \
 dados.""",
             }
     except Exception as e:
@@ -848,7 +866,7 @@ posterior inserção no banco de dados.""",
 async def update_leaderboard_user(*args, **kwargs) -> None:
     """Atualiza placar de usuário com total de pontuação"""
     try:
-        await update_user(kwargs["nome"], kwargs["lang"])
+        await update_user_by_name(kwargs["nome"], lang = kwargs["lang"])
         with Session(engine) as session:
             placar_stmt: object = select(Leaderboard).where(
                 Leaderboard.description == kwargs["placar"])

@@ -103,7 +103,7 @@ async def user_name(name: str, lang: str = "br") -> dict:
         }
 
 @um.get("/user/id/{uid}")
-async def user_id(uid: str = "", lang: str = "br") -> dict:
+async def user_id(uid: str, lang: str = "br") -> dict:
     """GET /users/uid"""
     try:
         if uid not in ["", " ", None, False]:
