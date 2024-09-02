@@ -6,10 +6,10 @@ build-backend = "setuptools.build_meta"
 #log_level = 'INFO'
 #[tool.poetry.scripts]
 ## DESENVOLVIMENTO
-#dev = "uvicorn src.e108.web:app --reload"
+#dev = "uvicorn src.hobrsite.web:app --reload"
 ## TESTE
-#test = "python -m e108 test"
+#test = "python -m hobrsite test"
 ## HOMOLOGAÇÃO
 #homo = "echo adoro"
 ## PRODUÇÃO
-#prod = "python -m e108"
+#prod = "python -m hobrsite"
