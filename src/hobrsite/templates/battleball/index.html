@@ -1,13 +1,20 @@
+{% set premio = "Porra Nenhuma" %}
+{% set table_color = "light" %}
+{% set situacao = "Normal" %}
+{% set requalificados = ["Tranquilo", "Trax", "Cyrex", "Shadow"] %}
+{% set desqualificados = ["Greg", "LendaryChacal", "lysao", "DON.GOLD"] %}
 {% extends "default_layout.html" %}
 {% block title %}{{ title }}{% endblock %}
 {% block body %}
 <h2>Ranking do Battle Ball</h2>
 <hr>
 <div class="alert alert-warning alert-dismissible fade show" role="alert">
-Este &eacute; o resultado dos jogos ranqueados de Battle Ball no primeiro 
-campeonato. A ger&ecirc;ncia do hotel j&aacute; avisou que este n&atilde;o 
-&eacute; o resultado final, pois eles est&atilde;o analisando as partidas e 
-potencialmente desclassificando jogadores. 
+Este &eacute; o total de pontos individual para cada jogador(a) dos jogos 
+ranqueados de Battle Ball Rebound do Habbo Origins BR no primeiro campeonato 
+em agosto de 2024. Os jogos casuais n&atilde;o est&atilde;o contabilizados. 
+Jogadores que ganharam o pr&ecirc;mio e aqueles que foram desqualificados 
+est&atilde;o marcados e coloridos na tabela. Jogadores lend&aacute;rios que 
+foram banidos est&atilde;o inclu&iacute;dos por homenagem.
 <button
     type="button"
     class="btn-close"
@@ -31,20 +38,15 @@ potencialmente desclassificando jogadores.
             <td>LILO</td>
             <td>{{ "{0:n}".format(690420) }}</td>
             <td>Banido</td>
-            <td>O nosso amor &hearts;</td>
+            <td>Trof&eacute;u de Pato de Bronze do <b>iggy1</b></td>
         </tr>
         <tr class="table-primary">
             <th scope="row">2</th>
             <td>Butter</td>
             <td>{{ "{0:n}".format(171157) }}</td>
             <td>Banido</td>
-            <td>O nosso amor &hearts;</td>
+            <td>Trof&eacute;u de Pato de Prata do <b>iggy1</b></td>
         </tr>
-{% set premio = "Porra Nenhuma" %}
-{% set table_color = "light" %}
-{% set situacao = "Normal" %}
-{% set requalificados = ["Tranquilo", "Trax", "Cyrex", "Shadow"] %}
-{% set desqualificados = ["Greg", "LendaryChacal", "lysao", "DON.GOLD"] %}
 {% for nome, pontos in rankings %}
     {% if 1 <= loop.index <= 5 %}
         {% set premio = "Dragão Dourado" %}

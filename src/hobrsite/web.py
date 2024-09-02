@@ -80,12 +80,12 @@ carregou: {jsonify(repr(e1))}"""
 
 @app.route("/battleball")
 async def battleball() -> str:
-    """Ranking Battle Ball"""
+    """Battle Ball"""
     try:
         placar: dict = await get_placar("um")
         if placar["status"]:
             return await render_template(
-                "battleball.html",
+                "battleball/index.html",
                 color = "success",
                 description = description,
                 name = name,
