@@ -18,7 +18,7 @@ pymysql = "*"
 apscheduler = "*"
 
 [dev-packages]
-e108 = {file = ".", editable = true}
+hobrsite = {file = ".", editable = true}
 
 [requires]
 python_version = "3.12"
@@ -26,18 +26,18 @@ python_full_version = "3.12.4"
 
 [scripts]
 ## DESENVOLVIMENTO
-dev = "uvicorn src.e108.web:app --reload ${WEB_DEV_OPTIONS}"
-da = "uvicorn src.e108.api:app --reload ${API_DEV_OPTIONS}"
-dw = "uvicorn src.e108.web:app --reload ${WEB_DEV_OPTIONS}"
+dev = "uvicorn src.hobrsite.web:app --reload ${WEB_DEV_OPTIONS}"
+da = "uvicorn src.hobrsite.api:app --reload ${API_DEV_OPTIONS}"
+dw = "uvicorn src.hobrsite.web:app --reload ${WEB_DEV_OPTIONS}"
 ## TESTE
-test = "python -m e108"
-ta = "uvicorn e108.api:app ${API_OPTIONS}"
-tw = "uvicorn e108.web:app ${WEB_OPTIONS}"
+test = "python -m hobrsite"
+ta = "uvicorn hobrsite.api:app ${API_OPTIONS}"
+tw = "uvicorn hobrsite.web:app ${WEB_OPTIONS}"
 ## HOMOLOGAÇÃO
-homo = 'echo adoro'
+homo = "echo adoro"
 ## PRODUÇÃO
-prod = "python -m e108"
-pa = "python -m e108 api"
-pw = "python -m e108 web"
+prod = "python -m hobrsite"
+pa = "python -m hobrsite api"
+pw = "python -m hobrsite web"
 ## scripts
 up = "python scripts/atualizatodomundo.py"

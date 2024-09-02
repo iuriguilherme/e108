@@ -1,0 +1,118 @@
+{% extends "default_layout.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block body %}
+<h2>Perguntas que ningu&eacute;m fez (FAQ)</h2>
+<hr>
+<div class="accordion info-bg-subtle" id="accordionInfo">
+    <div class="accordion-item">
+        <h2 class="accordion-header"><button
+            class="accordion-button"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#collapse1"
+            aria-expanded="true"
+            aria-controls="collapse1"
+        >Why is everything in spanish&quest;</button></h2>
+        <div
+            id="collapse1"
+            class="accordion-collapse collapse show"
+            data-bs-parent="#accordionInfo"
+        >
+            <div class="accordion-body"><strong>It's not.</strong> All 
+questions that are this dumb are going to be ignored. If you can read this, 
+you have working neurons in your brain. Use them. If you think this is 
+offensive, you should see how english speaking people are treating 
+Brazilians in the official discord server.</div>
+        </div>
+    </div>
+    <div class="accordion-item">
+        <h2 class="accordion-header"><button
+            class="accordion-button collapsed"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#collapse2"
+            aria-expanded="false"
+            aria-controls="collapse2"
+        >Pra que serve este site&quest;</button></h2>
+        <div
+            id="collapse2"
+            class="accordion-collapse collapse"
+            data-bs-parent="#accordionInfo"
+        >
+            <div class="accordion-body"><strong>Pra ver o ranking do battle 
+ball.</strong> Battle Ball &eacute; um mini jogo no 
+<a href="https://origins.habbo.com.br" target="_blank">Habbo Origins</a>. Por 
+enquanto n&atilde;o tem nada funcionando no site porque a API do Battle Ball 
+do Origins ainda n&atilde;o &eacute; p&uacute;blica.</div>
+        </div>
+    </div>
+    <div class="accordion-item">
+        <h2 class="accordion-header"><button
+            class="accordion-button collapsed"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#collapse3"
+            aria-expanded="false"
+            aria-controls="collapse3"
+        >Tem o c&oacute;digo fonte desse site&quest;</button></h2>
+        <div
+            id="collapse3"
+            class="accordion-collapse collapse"
+            data-bs-parent="#accordionInfo"
+        >
+            <div class="accordion-body"><strong>Sim.</strong> O c&oacute;digo 
+fonte do site est&aacute; no 
+<a href="https://github.com/iuriguilherme/{{ name }}" target="_blank">Github
+</a> e a licen&ccedil;a &eacute; LGPL. O site foi escrito em Python, o 
+dom&iacute;nio <code>{{ site }}</code> &eacute; do 
+<a href="https://astronis.gg" target="_blank">Astronis</a> e o administrador 
+do sistema &eacute; o <a href="https://iuri.xyz" target="_blank">iggy1</a>.
+</div>
+        </div>
+    </div>
+    <div class="accordion-item">
+        <h2 class="accordion-header"><button
+            class="accordion-button collapsed"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#collapse4"
+            aria-expanded="false"
+            aria-controls="collapse4"
+        >Porque usar bootstrap, python, porque usar esse dom&iacute;nio, 
+porque n&atilde;ousar javascript / typescript / php...</button></h2>
+        <div
+            id="collapse4"
+            class="accordion-collapse collapse"
+            data-bs-parent="#accordionInfo"
+        >
+            <div class="accordion-body"><strong>Caguei.</strong> O meu site 
+t&aacute; no ar e o teu n&atilde;o. Eu sou um homem de a&ccedil;&atilde;o e 
+sofisma tem lugar e hora.<br /><i>PS: Precisamos de uma pessoa para redigir 
+as respostas nesta p&aacute;gina, o desenvolvedor &eacute; obviamente incompetente e recalcado.</i></div>
+        </div>
+    </div>
+    <div class="accordion-item">
+        <h2 class="accordion-header"><button
+            class="accordion-button collapsed"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#collapse5"
+            aria-expanded="false"
+            aria-controls="collapse5"
+        >Quem fez/faz este site&quest;</button></h2>
+        <div
+            id="collapse5"
+            class="accordion-collapse collapse"
+            data-bs-parent="#accordionInfo"
+        >
+            <div class="accordion-body"><strong>O
+<a href="https://github.com/iuriguilherme" target="_blank">teu pai</a>.
+</strong> Esse tipo de pergunta absurda eu n&atilde;o vou perder tempo 
+respondendo. Se tu precisa saber esse tipo de coisa pra usar o site, aperta 
+CTRL+W.<br /><i>PS: Precisamos de uma pessoa para redigir as respostas nesta 
+p&aacute;gina, o desenvolvedor &eacute; obviamente incompetente e recalcado.
+</i></div>
+        </div>
+    </div>
+</div>
+{% endblock %}

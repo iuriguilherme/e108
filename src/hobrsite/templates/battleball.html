@@ -28,13 +28,13 @@ potencialmente desclassificando jogadores.
         <tr class="table-primary">
             <th scope="row">1</th>
             <td>LILO</td>
-            <td>690420</td>
+            <td>{{ "{0:n}".format(690420) }}</td>
             <td>O nosso amor &hearts;</td>
         </tr>
         <tr class="table-primary">
             <th scope="row">2</th>
             <td>Butter</td>
-            <td>171157</td>
+            <td>{{ "{0:n}".format(171157) }}</td>
             <td>O nosso amor &hearts;</td>
         </tr>
 {% set premio = "Porra Nenhuma" %}
@@ -53,7 +53,7 @@ potencialmente desclassificando jogadores.
         <tr class="table-{{ table_color }}">
             <th scope="row">{{ loop.index + 2 }}</th>
             <td>{{ nome }}</td>
-            <td>{{ pontos }}</td>
+            <td>{{ "{0:n}".format(pontos) }}</td>
             <td>{{ premio }}</td>
         </tr>
 {% endfor %}

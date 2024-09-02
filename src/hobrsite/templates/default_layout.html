@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html lang="pt_BR">
 <!--
-e108
+hobrsite
 
 Copyleft 2024 Iuri Guilherme <https://iuri.neocities.org/>
 
@@ -76,6 +76,11 @@ MA 02110-1301, USA.
         </li>
         <li class="nav-item">
             <a class="nav-link"
+                href="{{ url_for('info') }}"
+            >F.A.Q.</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link"
                 href="{{ url_for('battleball') }}"
             ><b>Ranking Battle Ball</b></a>
         </li>
@@ -121,8 +126,8 @@ Problemas com o site? <!-- fodase kkk --> Por favor <a
     href="https://github.com/iuriguilherme/{{ name }}"
     target="_blank"
 >C&oacute;digo fonte</a>. <b>{{ site }}</b> n&atilde;o tem <i>bobba</i> 
-nenhuma a ver com a Sulake Oy. N&atilde;o nos responsabilizamos pelos sites 
-externos referenciados aqui.
+nenhuma a ver com a Sulake Oy tampouco com o Habbo Hotel. N&atilde;o nos 
+responsabilizamos pelos sites externos referenciados aqui.
 {% block footer %}{% endblock %}
 </footer>
 </center>

@@ -1,4 +1,4 @@
-e108
+hobrsite
 ===
 
 Mais um projeto sem futuro  
@@ -23,12 +23,12 @@ $ pipenv run pa ## API
 ### venv / pip
 
 ```
-$ python -m venv venv
-$ source venv/bin/activate # Unix
-$ .\venv\Scripts\activate # Powershell
-(venv) $ pip install -e .
-(venv) $ python -m e108 web ## Site
-(venv) $ python -m e108 api ## API
+$ python -m venv ambiente
+$ source ambiente/bin/activate # Unix
+$ .\ambiente\Scripts\activate # Powershell
+(ambiente) $ pip install -e .
+(ambiente) $ python -m hobrsite web ## Site
+(ambiente) $ python -m hobrsite api ## API
 ```
 
 Licença
