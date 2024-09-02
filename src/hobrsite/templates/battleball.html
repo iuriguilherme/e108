@@ -62,9 +62,11 @@ potencialmente desclassificando jogadores.
     {% if nome in desqualificados %}
         {% set premio = "Porra Nenhuma" %}
         {% set situacao = "Desqualificado" %}
+        {% set table_color = "light" %}
     {% elif nome in requalificados %}
         {% set premio = "Dragão de Bronze" %}
         {% set situacao = "Qualificado" %}
+        {% set table_color = "danger" %}
     {% endif %}
         <tr class="table-{{ table_color }}">
             <th scope="row">{{ loop.index + 2 }}</th>
