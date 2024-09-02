@@ -19,7 +19,7 @@ except:
 
 try:
     with open('docs/users.txt', 'r') as f:
-        users: list[str] = [l.rstrip() for l in f]
+        users: set[str] = set([l.rstrip() for l in f])
     for user in users:
         logger.info(f"Atualizando {user}")
         time.sleep(delay)
