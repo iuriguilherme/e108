@@ -88,19 +88,65 @@ async def battleball() -> str:
         situacao: str = "Normal"
         requalificados: str = ["Tranquilo", "Trax", "Cyrex", "Shadow"]
         desqualificados: str = ["Greg", "LendaryChacal", "lysao", "DON.GOLD"]
+        dragon_id_map: dict[str] = {
+            "default": "Desconhecido",
+            "Hugo": "Desconhecido",
+            "Charizard": "Desconhecido",
+            "Rimuru": "95200",
+            "Rei": "Desconhecido",
+            "Shirato": "Desconhecido",
+            "Tanuke": "Desconhecido",
+            "Paris": "Desconhecido",
+            "Nicdragon": "95205",
+            "DrMax": "Desconhecido",
+            "Bravura": "Desconhecido",
+            "jcesarneto": "95208",
+            "Onigiri": "Desconhecido",
+            "Mentalizado": "95210",
+            "Bezinazzi": "Desconhecido",
+            "Amo": "Desconhecido",
+            "Astronis": "95213",
+            "Cotonete": "95214",
+            ".Red": "95215",
+            "Jaguar": "Desconhecido",
+            "Cigas": "95217",
+            "CarlosAndre": "95226",
+            "Bad": "95219",
+            "Raskolnikov": "95220",
+            "Luks": "95221",
+            "Senho": "95222",
+            "MatheusCaldas": "95223",
+            "Vascaina": "Desconhecido",
+            "Clint": "95225",
+            "Pesadelos": "Desconhecido",
+            "Viktor": "Desconhecido",
+            "Socorro": "Desconhecido",
+            "DDD": "95229",
+            "iggy1": "95230",
+            "Ryco": "95231",
+            "Externet": "Desconhecido",
+            "4Cheese": "95233",
+            "Tranquilo": "95234",
+            "Trax": "Desconhecido",
+            "Cyrex": "Desconhecido",
+            "Shadow": "Desconhecido",
+        }
         placar: dict = await get_placar("um")
         if placar["status"]:
             for i, (nome, pontos) in enumerate(placar["message"]):
                 if 1 <= i <= 5:
-                    premio = "Dragão Dourado"
+                    premio = f"""Dragão Dourado (\
+{dragon_id_map.get(nome, dragon_id_map.get("default"))})"""
                     table_color = "warning"
                     situacao = "Qualificado"
                 elif 6 <= i <= 15:
-                    premio = "Dragão Prateado"
+                    premio = f"""Dragão Prateado (\
+{dragon_id_map.get(nome, dragon_id_map.get("default"))})"""
                     table_color = "secondary"
                     situacao = "Qualificado"
                 elif 16 <= i <= 40:
-                    premio = "Dragão de Bronze"
+                    premio = f"""Dragão de Bronze (\
+{dragon_id_map.get(nome, dragon_id_map.get("default"))})"""
                     table_color = "danger"
                     situacao = "Qualificado"
                 if nome in desqualificados:
@@ -116,26 +162,32 @@ async def battleball() -> str:
                     "premio": premio,
                     "situacao": situacao,
                     "table_color": table_color,
+                    "dragon_id": dragon_id_map.get(nome,
+                        dragon_id_map.get("default")),
                 }
             rankings["LILO"] = {
                 "pontos": 690420,
                 "premio": "Troféu de Pato de Bronze do iggy1",
                 "situacao": "Banido",
                 "table_color": "primary",
+                "dragon_id": dragon_id_map.get("LILO",
+                    dragon_id_map.get("default")),
             }
             rankings["Butter"] = {
                 "pontos": 171157,
                 "premio": "Troféu de Pato de Prata do iggy1",
                 "situacao": "Banido",
                 "table_color": "primary",
+                "dragon_id": dragon_id_map.get("Butter",
+                    dragon_id_map.get("default")),
             }
-            logger.info(rankings)
             if "DON.GOLD" in rankings:
                 rankings["DON.GOLD"]["premio"] = """Troféu de Pato de Ouro \
 do iggy1"""
                 rankings["DON.GOLD"]["table_color"] = "success"
             if "Greg" in rankings:
-                rankings["Greg"]["premio"] = "Dragão de Bronze do Astronis"
+                rankings["Greg"]["premio"] = f"""Dragão de Bronze do Astronis \
+({dragon_id_map.get("Astronis", dragon_id_map.get("default"))})"""
                 rankings["Greg"]["table_color"] = "success"
             return await render_template(
                 "battleball/index.html",
