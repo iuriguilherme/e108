@@ -105,9 +105,9 @@ async def battleball() -> str:
             "Astronis": "95213",
             "Cotonete": "95214",
             ".Red": "95215",
-            "Jaguar": "Desconhecido",
+            "Jaguar": "95216",
             "Cigas": "95217",
-            "CarlosAndre": "95226",
+            "CarlosAndre": "95218",
             "Bad": "95219",
             "Raskolnikov": "95220",
             "Luks": "95221",
@@ -115,7 +115,7 @@ async def battleball() -> str:
             "MatheusCaldas": "95223",
             "Vascaina": "95224",
             "Clint": "95225",
-            "Pesadelos": "Desconhecido",
+            "Pesadelos": "95226",
             "Viktor": "Desconhecido",
             "Socorro": "Desconhecido",
             "DDD": "95229",
@@ -133,36 +133,43 @@ async def battleball() -> str:
             for i, (nome, pontos) in enumerate(placar["message"]):
                 premio: str = "Porra Nenhuma"
                 table_color: str = "light"
+                prize_img: str = "red_cross.gif"
                 situacao: str = "Normal"
                 if 0 <= i <= 4:
                     premio = f"""Dragão Dourado (\
 {dragon_id_map.get(nome, dragon_id_map.get("default"))})"""
                     table_color = "warning"
                     situacao = "Qualificado"
+                    prize_img = "dragon_gold.gif"
                 elif 5 <= i <= 14:
                     premio = f"""Dragão Prateado (\
 {dragon_id_map.get(nome, dragon_id_map.get("default"))})"""
                     table_color = "secondary"
                     situacao = "Qualificado"
+                    prize_img = "dragon_silver.gif"
                 elif 15 <= i <= 43:
                     premio = f"""Dragão de Bronze (\
 {dragon_id_map.get(nome, dragon_id_map.get("default"))})"""
                     table_color = "danger"
                     situacao = "Qualificado"
+                    prize_img = "dragon_bronze.gif"
                 if nome in desqualificados:
                     premio = "Porra Nenhuma"
                     situacao = "Desqualificado"
                     table_color = "info"
+                    prize_img = "red_cross.gif"
                 elif nome in requalificados:
                     premio = f"""Dragão de Bronze (\
 {dragon_id_map.get(nome, dragon_id_map.get("default"))})"""
                     situacao = "Qualificado"
                     table_color = "danger"
+                    prize_img = "dragon_bronze.gif"
                 rankings[nome] = {
                     "pontos": pontos,
                     "premio": premio,
                     "situacao": situacao,
                     "table_color": table_color,
+                    "prize_img": prize_img,
                     "dragon_id": dragon_id_map.get(nome,
                         dragon_id_map.get("default")),
                 }
@@ -171,6 +178,7 @@ async def battleball() -> str:
                 "premio": "Troféu de Pato de Bronze do iggy1",
                 "situacao": "Banido",
                 "table_color": "primary",
+                "prize_img": "favicon.ico",
                 "dragon_id": dragon_id_map.get("LILO",
                     dragon_id_map.get("default")),
             }
@@ -179,6 +187,7 @@ async def battleball() -> str:
                 "premio": "Troféu de Pato de Prata do iggy1",
                 "situacao": "Banido",
                 "table_color": "primary",
+                "prize_img": "favicon.ico",
                 "dragon_id": dragon_id_map.get("Butter",
                     dragon_id_map.get("default")),
             }
@@ -186,10 +195,12 @@ async def battleball() -> str:
                 rankings["DON.GOLD"]["premio"] = """Troféu de Pato de Ouro \
 do iggy1"""
                 rankings["DON.GOLD"]["table_color"] = "success"
+                rankings["DON.GOLD"]["prize_img"] = "favicon.ico"
             if "Greg" in rankings:
                 rankings["Greg"]["premio"] = f"""Dragão de Bronze do Astronis \
 ({dragon_id_map.get("Astronis", dragon_id_map.get("default"))})"""
                 rankings["Greg"]["table_color"] = "success"
+                rankings["Greg"]["prize_img"] = "favicon.ico"
             return await render_template(
                 "battleball/index.html",
                 color = "success",
