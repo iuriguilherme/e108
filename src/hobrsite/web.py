@@ -83,9 +83,6 @@ async def battleball() -> str:
     """Battle Ball"""
     try:
         rankings: dict = dict()
-        premio: str = "Porra Nenhuma"
-        table_color: str = "light"
-        situacao: str = "Normal"
         requalificados: str = ["Tranquilo", "Trax", "Cyrex", "Shadow"]
         desqualificados: str = ["Greg", "LendaryChacal", "lysao", "DON.GOLD"]
         dragon_id_map: dict[str] = {
@@ -134,17 +131,20 @@ async def battleball() -> str:
         placar: dict = await get_placar("um")
         if placar["status"]:
             for i, (nome, pontos) in enumerate(placar["message"]):
-                if 1 <= i <= 5:
+                premio: str = "Porra Nenhuma"
+                table_color: str = "light"
+                situacao: str = "Normal"
+                if 0 <= i <= 4:
                     premio = f"""Dragão Dourado (\
 {dragon_id_map.get(nome, dragon_id_map.get("default"))})"""
                     table_color = "warning"
                     situacao = "Qualificado"
-                elif 6 <= i <= 15:
+                elif 5 <= i <= 14:
                     premio = f"""Dragão Prateado (\
 {dragon_id_map.get(nome, dragon_id_map.get("default"))})"""
                     table_color = "secondary"
                     situacao = "Qualificado"
-                elif 16 <= i <= 40:
+                elif 15 <= i <= 43:
                     premio = f"""Dragão de Bronze (\
 {dragon_id_map.get(nome, dragon_id_map.get("default"))})"""
                     table_color = "danger"
