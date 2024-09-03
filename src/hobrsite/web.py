@@ -95,12 +95,12 @@ async def battleball() -> str:
             "Tanuke": "Desconhecido",
             "Paris": "Desconhecido",
             "Nicdragon": "95205",
-            "DrMax": "Desconhecido",
-            "Bravura": "Desconhecido",
+            "DrMax": "95206",
+            "Bravura": "95207",
             "jcesarneto": "95208",
             "Onigiri": "Desconhecido",
             "Mentalizado": "95210",
-            "Bezinazzi": "Desconhecido",
+            "Bezinazzi": "95211",
             "Amo": "Desconhecido",
             "Astronis": "95213",
             "Cotonete": "95214",
@@ -113,7 +113,7 @@ async def battleball() -> str:
             "Luks": "95221",
             "Senho": "95222",
             "MatheusCaldas": "95223",
-            "Vascaina": "Desconhecido",
+            "Vascaina": "95224",
             "Clint": "95225",
             "Pesadelos": "Desconhecido",
             "Viktor": "Desconhecido",
@@ -126,7 +126,7 @@ async def battleball() -> str:
             "Tranquilo": "95234",
             "Trax": "Desconhecido",
             "Cyrex": "Desconhecido",
-            "Shadow": "Desconhecido",
+            "Shadow": "95237",
         }
         placar: dict = await get_placar("um")
         if placar["status"]:
