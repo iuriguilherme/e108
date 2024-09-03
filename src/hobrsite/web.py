@@ -82,17 +82,72 @@ carregou: {jsonify(repr(e1))}"""
 async def battleball() -> str:
     """Battle Ball"""
     try:
+        rankings: dict = dict()
+        premio: str = "Porra Nenhuma"
+        table_color: str = "light"
+        situacao: str = "Normal"
+        requalificados: str = ["Tranquilo", "Trax", "Cyrex", "Shadow"]
+        desqualificados: str = ["Greg", "LendaryChacal", "lysao", "DON.GOLD"]
         placar: dict = await get_placar("um")
         if placar["status"]:
+            for i, (nome, pontos) in enumerate(placar["message"]):
+                if 1 <= i <= 5:
+                    premio = "Dragão Dourado"
+                    table_color = "warning"
+                    situacao = "Qualificado"
+                elif 6 <= i <= 15:
+                    premio = "Dragão Prateado"
+                    table_color = "secondary"
+                    situacao = "Qualificado"
+                elif 16 <= i <= 40:
+                    premio = "Dragão de Bronze"
+                    table_color = "danger"
+                    situacao = "Qualificado"
+                if nome in desqualificados:
+                    premio = "Porra Nenhuma"
+                    situacao = "Desqualificado"
+                    table_color = "info"
+                elif nome in requalificados:
+                    premio = "Dragão de Bronze"
+                    situacao = "Qualificado"
+                    table_color = "danger"
+                rankings[nome] = {
+                    "pontos": pontos,
+                    "premio": premio,
+                    "situacao": situacao,
+                    "table_color": table_color,
+                }
+            rankings["LILO"] = {
+                "pontos": 690420,
+                "premio": "Troféu de Pato de Bronze do iggy1",
+                "situacao": "Banido",
+                "table_color": "primary",
+            }
+            rankings["Butter"] = {
+                "pontos": 171157,
+                "premio": "Troféu de Pato de Prata do iggy1",
+                "situacao": "Banido",
+                "table_color": "primary",
+            }
+            logger.info(rankings)
+            if "DON.GOLD" in rankings:
+                rankings["DON.GOLD"]["premio"] = """Troféu de Pato de Ouro \
+do iggy1"""
+                rankings["DON.GOLD"]["table_color"] = "success"
+            if "Greg" in rankings:
+                rankings["Greg"]["premio"] = "Dragão de Bronze do Astronis"
+                rankings["Greg"]["table_color"] = "success"
             return await render_template(
                 "battleball/index.html",
                 color = "success",
                 description = description,
                 name = name,
-                rankings = placar["message"],
+                rankings = {k: v for k, v in sorted(rankings.items(),
+                    key = lambda r: r[1]["pontos"], reverse = True)},
                 site = site,
                 title = "Ranking Battle Ball",
                 version = version,
+                premio = premio,
             )
         else:
             return await render_template(

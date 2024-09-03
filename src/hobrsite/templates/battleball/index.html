@@ -1,8 +1,3 @@
-{% set premio = "Porra Nenhuma" %}
-{% set table_color = "light" %}
-{% set situacao = "Normal" %}
-{% set requalificados = ["Tranquilo", "Trax", "Cyrex", "Shadow"] %}
-{% set desqualificados = ["Greg", "LendaryChacal", "lysao", "DON.GOLD"] %}
 {% extends "default_layout.html" %}
 {% block title %}{{ title }}{% endblock %}
 {% block body %}
@@ -33,51 +28,15 @@ foram banidos est&atilde;o inclu&iacute;dos por homenagem.
         </tr>
     </thead>
     <tbody>
-        <tr class="table-primary">
-            <th scope="row">1</th>
-            <td>LILO</td>
-            <td>{{ "{0:n}".format(690420) }}</td>
-            <td>Banido</td>
-            <td>Trof&eacute;u de Pato de Bronze do <b>iggy1</b></td>
-        </tr>
-        <tr class="table-primary">
-            <th scope="row">2</th>
-            <td>Butter</td>
-            <td>{{ "{0:n}".format(171157) }}</td>
-            <td>Banido</td>
-            <td>Trof&eacute;u de Pato de Prata do <b>iggy1</b></td>
-        </tr>
-{% for nome, pontos in rankings %}
-    {% if 1 <= loop.index <= 5 %}
-        {% set premio = "Dragão Dourado" %}
-        {% set table_color = "warning" %}
-        {% set situacao = "Qualificado" %}
-    {% elif 6 <= loop.index <= 15 %}
-        {% set premio = "Dragão Prateado" %}
-        {% set table_color = "secondary" %}
-        {% set situacao = "Qualificado" %}
-    {% elif 16 <= loop.index <= 40 %}
-        {% set premio = "Dragão de Bronze" %}
-        {% set table_color = "danger" %}
-        {% set situacao = "Qualificado" %}
-    {% endif %}
-    {% if nome in desqualificados %}
-        {% set premio = "Porra Nenhuma" %}
-        {% set situacao = "Desqualificado" %}
-        {% set table_color = "light" %}
-    {% elif nome in requalificados %}
-        {% set premio = "Dragão de Bronze" %}
-        {% set situacao = "Qualificado" %}
-        {% set table_color = "danger" %}
-    {% endif %}
+    {% for nome, v in rankings.items() %}
         <tr class="table-{{ table_color }}">
             <th scope="row">{{ loop.index + 2 }}</th>
             <td>{{ nome }}</td>
-            <td>{{ "{0:n}".format(pontos) }}</td>
-            <td>{{ situacao }}</td>
-            <td>{{ premio }}</td>
+            <td>{{ "{0:n}".format(v["pontos"]) }}</td>
+            <td>{{ v["situacao"] }}</td>
+            <td>{{ v["premio"] }}</td>
         </tr>
-{% endfor %}
+    {% endfor %}
     </tbody>
 </table>
 {% endblock %}
