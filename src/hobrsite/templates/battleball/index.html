@@ -29,8 +29,8 @@ foram banidos est&atilde;o inclu&iacute;dos por homenagem.
     </thead>
     <tbody>
     {% for nome, v in rankings.items() %}
-        <tr class="table-{{ table_color }}">
-            <th scope="row">{{ loop.index + 2 }}</th>
+        <tr class="table-{{ v['table_color'] }}">
+            <th scope="row">{{ loop.index }}</th>
             <td>{{ nome }}</td>
             <td>{{ "{0:n}".format(v["pontos"]) }}</td>
             <td>{{ v["situacao"] }}</td>
