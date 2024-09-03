@@ -154,7 +154,8 @@ async def battleball() -> str:
                     situacao = "Desqualificado"
                     table_color = "info"
                 elif nome in requalificados:
-                    premio = "Dragão de Bronze"
+                    premio = f"""Dragão de Bronze (\
+{dragon_id_map.get(nome, dragon_id_map.get("default"))})"""
                     situacao = "Qualificado"
                     table_color = "danger"
                 rankings[nome] = {
