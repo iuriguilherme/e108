@@ -7,3 +7,4 @@ v0.1.0 -- Otimizações para persistência
 v0.2.1 -- Fila de agendamento para requisições
 v0.2.5 -- Placar do Battle Ball pronto
 v0.3.0 -- Projeto renomeado de e108 para hobrsite
+v0.4.0 -- Placar Battl Ball Rebound finalizado

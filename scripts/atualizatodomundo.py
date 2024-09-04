@@ -28,8 +28,10 @@ try:
     time.sleep(delay)
     requests.get("/".join([api, "atualizar",
         "usuarios"]))
+    time.sleep(delay)
     requests.get("/".join([api, "atualizar",
         "partidas"]))
+    time.sleep(delay)
     for user in users:
         logger.info(f"Atualizando placar para {user}")
         time.sleep(delay)
