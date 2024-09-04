@@ -1,0 +1,8 @@
+{% extends "default_layout.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block body %}
+<h2>{{ title }}</h2>
+<hr>
+<p>{{ descricao }}</p>
+<p><img src="data:image/png;base64,{{ grafico }}"/></p>
+{% endblock %}

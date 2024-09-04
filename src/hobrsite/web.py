@@ -5,7 +5,10 @@ logger: logging.Logger = logging.getLogger(__name__)
 
 try:
     import aiohttp
+    import base64
+    from io import BytesIO
     from jinja2 import TemplateNotFound
+    from matplotlib.figure import Figure
     # ~ import json
     import os
     from quart import (
@@ -88,7 +91,7 @@ async def battleball() -> str:
         dragon_id_map: dict[str] = {
             "default": "Desconhecido",
             "Hugo": "Desconhecido",
-            "Charizard": "Desconhecido",
+            "Charizard": "95199",
             "Rimuru": "95200",
             "Rei": "95201",
             "Shirato": "Desconhecido",
@@ -223,6 +226,43 @@ do iggy1"""
                 title = "Não deu certo",
                 version = version,
             )
+    except Exception as e:
+        logger.exception(e)
+        try:
+            return await render_template(
+                "error.html",
+                description = description,
+                error = repr(e),
+                name = name,
+                site = site,
+                title = "Erro",
+                version = version,
+            )
+        except Exception as e1:
+            logger.exception(e1)
+            return f"""O erro foi tão foda que nem a página de erro \
+carregou: {jsonify(repr(e1))}"""
+
+@app.route("/battleball/grafico1")
+async def battleball_graph1() -> str:
+    """Battle Ball Gráfico 1"""
+    try:
+        fig: object = Figure()
+        ax: object = fig.subplots()
+        ax.plot([1, 2])
+        buf: object = BytesIO()
+        fig.savefig(buf, format = "png")
+        grafico: object = base64.b64encode(buf.getbuffer()).decode("ascii")
+        return await render_template(
+            "battleball/graph1.html",
+            color = "success",
+            description = description,
+            name = name,
+            grafico = grafico,
+            site = site,
+            title = "Gráfico 1",
+            version = version,
+        )
     except Exception as e:
         logger.exception(e)
         try:

@@ -16,6 +16,7 @@ sqlalchemy = "*"
 uvicorn = "*"
 pymysql = "*"
 apscheduler = "*"
+matplotlib = "*"
 
 [dev-packages]
 hobrsite = {file = ".", editable = true}
